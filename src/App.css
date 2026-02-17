@@ -1,0 +1,27 @@
+.excel td{
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+    white-space: pre-line;
+}
+.excel td div{
+    box-sizing: border-box;
+    padding-left: 3px;
+    overflow: hidden;
+    display: flex;
+}
+.excel{
+    border-collapse: collapse;
+    font-size: 14px;
+}
+button, select, input {
+    margin: 0 2px;
+}
+@media print {
+    .no-print *{
+        display: none;
+    }
+}
