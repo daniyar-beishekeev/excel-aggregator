@@ -46,7 +46,7 @@ const extractThemeColors = (themes) => {
   ];
 };
 
-const sampleFiles = Object.keys(import.meta.glob('/sample_excels/*.xlsx'));
+const sampleFiles = Object.keys(import.meta.glob('/public/sample_excels/*.xlsx'));
 
 function App() {
   /** @type {import('react').MutableRefObject<import('exceljs').Workbook | null>} */
