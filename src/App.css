@@ -3,20 +3,66 @@
     min-width: 0;
     padding: 0;
     box-sizing: border-box;
-    overflow: hidden;
     position: relative;
-    white-space: pre-line;
+    white-space: pre;
+    overflow: visible;
 }
-.excel td div{
+.excel td .cell-content{
     box-sizing: border-box;
     padding-left: 3px;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
 }
 .excel{
     border-collapse: collapse;
     font-size: 14px;
 }
+
+.excel .selection:hover .cell-content{
+    background-color: rgba(211, 211, 211, 0.5) !important;
+}
+
+.comment-indicator {
+    position: relative;
+    width: 0.4em;
+    height: 0.6em;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+    background: red;
+}
+
+.cell-content:hover {
+    z-index: 99;
+}
+
+/*TODO: What if cell is enough small to fit tag indicators?*/
+.tag-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+}
+.comment-wrapper {
+    margin-left: 0.2em;
+    position: relative;
+}
+
+.comment-popup {
+    display: none;
+    min-width: 11em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background: #ffffe1;
+    border: 1px solid #ccc;
+    z-index: 9999;
+    white-space: pre-wrap;
+    padding: 0.5em;
+}
+
+.comment-wrapper:hover .comment-popup {
+    display: block;
+}
+
 button, select, input {
     margin: 0 2px;
 }

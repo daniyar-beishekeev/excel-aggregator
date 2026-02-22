@@ -1,4 +1,4 @@
-const indexedColors = [
+export const indexedColors = [
   "#000000", //0
   "#FFFFFF", //1
   "#FF0000", //2
@@ -64,4 +64,57 @@ const indexedColors = [
   "#333399", //62
   "#333333"  //63
 ]
-export default indexedColors;
+
+const readThemeColor = (scheme, tag) => {
+  const node = scheme.getElementsByTagName(`a:${tag}`)[0];
+  if (!node) return null;
+  const srgb = node.getElementsByTagName("a:srgbClr")[0];
+  if (srgb) return srgb.getAttribute("val");
+  const sys = node.getElementsByTagName("a:sysClr")[0];
+  if (sys) return sys.getAttribute("lastClr");
+
+  return null;
+};
+
+const themeTags = [
+  "dk1",
+  "lt1",
+  "dk2",
+  "lt2",
+  "accent1",
+  "accent2",
+  "accent3",
+  "accent4",
+  "accent5",
+  "accent6"
+];
+
+export const extractThemeColors = (themes) => {
+  if (!themes?.theme1) return [];
+
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(themes.theme1, "application/xml");
+
+  const scheme = xml.getElementsByTagName("a:clrScheme")[0];
+  if (!scheme) return [];
+
+  return themeTags.map(tag => readThemeColor(scheme, tag));
+};
+
+const tintChannel = (c, tint) => {
+  if (tint < 0) return Math.round(c * (1 + tint));
+  return Math.round(c + (255 - c) * tint);
+};
+
+export const applyTint = (hex, tint = 0) => {
+  if (!hex) return "#000";
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const nr = tintChannel(r, tint);
+  const ng = tintChannel(g, tint);
+  const nb = tintChannel(b, tint);
+  return `#${nr.toString(16).padStart(2, "0")}${ng
+    .toString(16)
+    .padStart(2, "0")}${nb.toString(16).padStart(2, "0")}`;
+};
