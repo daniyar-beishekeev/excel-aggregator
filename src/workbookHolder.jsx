@@ -26,6 +26,15 @@ export class workbookHolder{
   getWidth (col) {
     return Math.floor(((col?.width ?? col.worksheet.properties.defaultColWidth ?? 8.43) * 7 + 5));
   }
+  worksheetSize (ws) {
+    let totalRow = ws.rowCount, totalCol = ws.columnCount;
+    while (ws.getRow(totalRow).actualCellCount === 0) totalRow--;
+    while (ws.getColumn(totalCol).values.length === 0) totalCol--;
+    return {
+      totalCol,
+      totalRow
+    };
+  }
   cellSize (cell) {
     if (cell.isMerged) {
       const range = cell.worksheet._merges[cell.master.address];

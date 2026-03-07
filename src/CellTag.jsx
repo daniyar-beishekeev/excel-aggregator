@@ -1,3 +1,4 @@
+import './CellTag.css'
 export const CellTag = ({children, color = null}) => {
   return (
     <div className="comment-wrapper">

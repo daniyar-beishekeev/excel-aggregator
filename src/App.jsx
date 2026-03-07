@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useMemo, useRef, useState} from "react";
 import "./App.css"
 import ManageFiles from "./ManageFiles.jsx";
 import LoadingOverlay from "./LoadingOverlay.jsx";
@@ -27,6 +27,99 @@ function App() {
     setWsList(wbHandler.wb.worksheets.map(ws => [wbHandler.id, ws.name, ws.id]));
     setLoading(false);
   }
+  const containerRef = useRef(null);
+  const table = useMemo(() => {
+    if(!wbs.length) return null;
+    const ws = wbs[0].wb.getWorksheet(curWs[1]);
+    const wss = wbs.slice(1).map(wbHolder => wbHolder.wb.getWorksheet(ws.name));
+    const {totalRow, totalCol} = wbs[0].worksheetSize(ws);
+    const zoom = 1 ?? (ws.pageSetup.scale ?? 100) / 100;
+    console.log('LAST WS', ws);
+    const tableRows = [];
+
+    for (let rowNum = 1; rowNum <= totalRow; rowNum++) {
+      const row = ws.getRow(rowNum);
+      const cells = [];
+      for (let colNum = 1; colNum <= totalCol; colNum++) {
+        const cell = row.getCell(colNum)
+        if(cell.master !== cell) continue;
+        const parameters = {};
+        const cellSize = wbs[0].cellSize(cell);
+        const {h, w} = cellSize;
+        if (cellSize.rowSpan > 1) parameters.rowSpan = cellSize.rowSpan;
+        if (cellSize.colSpan > 1) parameters.colSpan = cellSize.colSpan;
+        const style = {};
+        const style2 = {};
+        wbs[0].parseStyle(style, style2, cell);
+        const getValue = wbs[0].getValue.bind(wbs[0]);
+        const value = getValue(cell);
+
+        let diffValue = null;
+        if (wss.length > 0){
+          const curWs = wss[0];
+          const cell2 = curWs.getCell(cell.address);
+          if (cell.html !== cell2.html) {
+            diffValue = getValue(cell2);
+          }
+        }
+
+        let comments = wbs[0].renderComment(cell);
+        cells.push(
+          <td key={cell.address} {...parameters} style={style}
+              data-addr={cell.address}
+          >
+            <div className={"cell-content"} style={{
+              minWidth: zoom * (diffValue ? w * 2 : w),
+              width: '100%',
+              height: zoom * h,
+              ...style2
+            }}>
+              <div style={{
+                position: "absolute",
+                display: "inherit",
+              }}>
+                {diffValue ? (
+                  <>
+                    <div style={{background: 'palevioletred'}}>
+                      {value}
+                    </div>
+                    <span style={{ margin: "0 6px" }}>→</span>
+                    <div style={{background: 'lightgreen'}}>
+                      {diffValue}
+                    </div>
+                  </>
+                ) : value}
+              </div>
+            </div>
+            <div className={"tag-container"}>
+              {comments && <CellTag>{comments}</CellTag>}
+              {diffValue && <CellTag color={"purple"}/>}
+            </div>
+          </td>
+        );
+      }
+      tableRows.push(<tr className={"selection"} key={row.number}>
+        <td className={"colHead"}>{rowNum}</td>
+        {cells}
+      </tr>);
+    }
+
+    return (
+      <table className={"excel"} key={curWs} style={{
+        fontSize: `${14 * zoom}px`
+      }}>
+        <thead>
+        <tr>
+          <th>[]</th>
+          {Array.from({length: totalCol}).map((_, col) =>
+            <th>{ws.getColumn(col + 1).letter}</th>
+          )}
+        </tr>
+        </thead>
+        <tbody>{tableRows}</tbody>
+      </table>
+    );
+  }, [curWs])
 
   return (
     <>
@@ -42,94 +135,9 @@ function App() {
           <ManageFiles applyChanges={applyFiles}/>
         </div>
       </div>
-      {curWs && (
-        <>
-          {(() => {
-              if(!wbs.length) return null;
-              const ws = wbs[0].wb.getWorksheet(curWs[1]);
-              const wss = wbs.slice(1).map(wbHolder => wbHolder.wb.getWorksheet(ws.name));
-              let totalRow = ws.rowCount;
-              const totalCol = ws.columnCount;
-              while (ws.getRow(totalRow).actualCellCount === 0) totalRow--;
-              const zoom = 1 ?? (ws.pageSetup.scale ?? 100) / 100;
-              console.log('LAST WS', ws);
-              const tableRows = [];
-
-              for (let rowNum = 1; rowNum <= totalRow; rowNum++) {
-                const row = ws.getRow(rowNum);
-                const cells = [];
-                for (let colNum = 1; colNum <= totalCol; colNum++) {
-                  const cell = row.getCell(colNum)
-                  if(cell.master !== cell) continue;
-                  const parameters = {};
-                  const cellSize = wbs[0].cellSize(cell);
-                  const {h, w} = cellSize;
-                  if (cellSize.rowSpan > 1) parameters.rowSpan = cellSize.rowSpan;
-                  if (cellSize.colSpan > 1) parameters.colSpan = cellSize.colSpan;
-                  const style = {};
-                  const style2 = {};
-                  wbs[0].parseStyle(style, style2, cell);
-                  const getValue = wbs[0].getValue.bind(wbs[0]);
-                  const value = getValue(cell);
-
-                  let diffValue = null;
-                  if (wss.length > 0){
-                    const curWs = wss[0];
-                    const cell2 = curWs.getCell(cell.address);
-                    if (cell.html !== cell2.html) {
-                      diffValue = getValue(cell2);
-                    }
-                  }
-
-                  let comments = wbs[0].renderComment(cell);
-                  cells.push(
-                    <td key={cell.address} {...parameters} style={style}
-                        data-addr={cell.address}
-                    >
-                      <div className={"cell-content"} style={{
-                        minWidth: zoom * (diffValue ? w * 2 : w),
-                        width: '100%',
-                        height: zoom * h,
-                        ...style2
-                      }}>
-                        <div style={{
-                          position: "absolute",
-                          display: "inherit",
-                        }}>
-                          {diffValue ? (
-                            <>
-                              <div style={{background: 'palevioletred'}}>
-                                {value}
-                              </div>
-                              <span style={{ margin: "0 6px" }}>→</span>
-                              <div style={{background: 'lightgreen'}}>
-                                {diffValue}
-                              </div>
-                            </>
-                          ) : value}
-                        </div>
-                        <div className={"tag-container"}>
-                          {comments && <CellTag>{comments}</CellTag>}
-                          {diffValue && <CellTag color={"purple"}/>}
-                        </div>
-                      </div>
-                    </td>
-                  );
-                }
-                tableRows.push(<tr className={"selection"} key={row.number}>{cells}</tr>);
-              }
-
-              return (
-                <table className={"excel"} key={curWs} style={{
-                  fontSize: `${14 * zoom}px`
-                }}>
-                  <tbody>{tableRows}</tbody>
-                </table>
-              );
-            })()
-          }
-        </>
-      )}
+      <div style={{ height: '80vh', overflow: "auto" }} ref={containerRef}>
+        {table}
+      </div>
     </>
   );
 }

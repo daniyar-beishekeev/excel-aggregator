@@ -1,0 +1,35 @@
+.tag-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+}
+.comment-indicator {
+    z-index: 999;
+    position: relative;
+    width: 0.4em;
+    height: 0.6em;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+    background: red;
+}
+.comment-wrapper {
+    margin-left: 0.2em;
+    position: relative;
+}
+
+.comment-popup {
+    display: none;
+    min-width: 11em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background: #ffffe1;
+    border: 1px solid #ccc;
+    z-index: 9999;
+    white-space: pre-wrap;
+    padding: 0.5em;
+}
+
+.comment-wrapper:hover .comment-popup {
+    display: block;
+}
