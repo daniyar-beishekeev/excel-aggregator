@@ -56,13 +56,13 @@ export class workbookHolder{
       }
     }
   }
-  getValue (cell) {
+  getHTMLValue (cell) {
     if (cell.value == null) return null;
-    else if(['string', 'number'].includes(typeof cell.value)) return String(cell.value);
+    else if(['string', 'number'].includes(typeof cell.value)) return cell.value;
     else if(isPlainObject(cell.value)){
       const val = cell.value ?? {};
       if (cell.formula) {
-        return String(cell.result?.error ?? cell.result ?? '');
+        return cell.result?.error ?? cell.result ?? '';
       }else if (val.richText) {
         let value = cell.html
         value = val.richText.map(en => {
