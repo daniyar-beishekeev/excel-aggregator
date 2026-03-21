@@ -2,16 +2,17 @@ import {BasicCell} from "./BasicCell.jsx";
 import {CellTag} from "./CellTag.jsx";
 
 const bgColors =  [
-  "#ff6b6b",
+  "lightgreen",
+  "palevioletred",
   "#f7b32b",
-  "#2ecc71",
-  "#3498db",
   "#9b59b6",
+  "#3498db",
   "#e67e22",
   "#1abc9c",
-  "#e84393"
+  "#e84393",
+  "#ebf83b",
 ]
-const backgroundColor = (idx) => {
+const backgroundColor = (idx = 0) => {
   return bgColors[idx % bgColors.length];
 }
 
@@ -35,14 +36,14 @@ export function DiffCell({cell, wbHolder, wss, props}) {
     } else {
       customProps.widthCoef = wss.length;
       value = <>
-        <div style={{background: 'lightgreen'}}>
+        <div style={{background: backgroundColor()}}>
           {value}
         </div>
         {wss.map((curWs, idx) => {
           return (
             <>
               <span style={{margin: "0 6px"}}>→</span>
-              <div style={{background: backgroundColor(idx)}}>
+              <div style={{background: backgroundColor(idx + 1)}}>
                 {getValue(curWs.getCell(cell.address))}
               </div>
             </>
