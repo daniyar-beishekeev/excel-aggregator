@@ -63,10 +63,9 @@ export class workbookHolder{
     else if(isPlainObject(cell.value)){
       const val = cell.value ?? {};
       if (cell.formula) {
-        return cell.result?.error ?? cell.result ?? '';
+        return cell.result?.error ?? cell.result ?? null;
       }else if (val.richText) {
-        let value = cell.html
-        value = val.richText.map(en => {
+        const value = val.richText.map(en => {
           const style = {};
           this.parseStyle(style, style, en, {font: true})
           return en.text.split('\n').map((text, idx) => {
@@ -78,11 +77,23 @@ export class workbookHolder{
             )
           })
         })
-        value = <div>{value}</div>
-        return value;
+        return <div>{value}</div>;
       }
     }
     return "NOT EVALUATED";
+  }
+  getRawValue (cell) {
+    if (cell.value == null) return null;
+    else if(['string', 'number'].includes(typeof cell.value)) return cell.value;
+    else if(isPlainObject(cell.value)){
+      const val = cell.value ?? {};
+      if (cell.formula) {
+        return cell.result?.error ?? cell.result ?? null;
+      }else if (val.richText) {
+        return val.richText.map(en => en.text)
+      }
+    }
+    throw new Error("Unable to parse cell value");
   }
   parseColor (obj, context = 'font') {
     const def = '#000';
