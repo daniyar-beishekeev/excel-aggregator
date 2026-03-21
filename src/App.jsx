@@ -1,4 +1,4 @@
-import {useMemo, useRef, useState} from "react";
+import {useCallback, useMemo, useRef, useState} from "react";
 import "./App.css"
 import ManageFiles from "./ManageFiles.jsx";
 import LoadingOverlay from "./LoadingOverlay.jsx";
@@ -29,28 +29,61 @@ function App() {
     setLoading(false);
   }
   const containerRef = useRef(null);
+
+  const ws = useMemo(() => {
+    if (!wbs?.length || !curWs) return null;
+    return wbs[0].wb.getWorksheet(curWs[1]);
+  }, [wbs, curWs]);
+
+  const wss = useMemo(() => {
+    if (!ws) return [];
+    return wbs.slice(1).map(wbHolder =>
+      wbHolder.wb.getWorksheet(ws.name)
+    );
+  }, [wbs, ws]);
+
+  const cellEvaluator = useCallback(
+    (cell, props) => (
+      <DiffCell
+        cell={cell}
+        wbHolder={wbs[0]}
+        wss={wss}
+        props={props}
+      />
+    ),
+    [wbs, wss]
+  );
+
   const table = useMemo(() => {
-    if(!wbs?.length || !curWs) return null;
-    const ws = wbs[0].wb.getWorksheet(curWs[1]);
-    const wss = wbs.slice(1).map(wbHolder => wbHolder.wb.getWorksheet(ws.name));
+    if (!ws) return null;
+
     console.log('LAST WS', ws);
 
-    return <BasicTable ws={ws} wbHolder={wbs[0]} cellEvaluator={(cell, props) => {
-      return <DiffCell cell={cell} wbHolder={wbs[0]} wss={wss} props={props}/>;
-    }}/>;
-  }, [wbs, curWs])
+    return (
+      <BasicTable
+        key={JSON.stringify(curWs)}
+        ws={ws}
+        wbHolder={wbs[0]}
+        cellEvaluator={cellEvaluator}
+      />
+    );
+  }, [curWs, ws, wbs, cellEvaluator]);
 
   return (
     <>
       <LoadingOverlay visible={loading} />
-      <div className={'no-print'} style={{display: "flex"}}>
-        {wsList.map(ws => (
-          <button key={ws} onClick={() => setCurWs([ws[0], ws[2]])}>{ws[1]}</button>
-        ))}
-        <div style={{marginLeft: 'auto'}}>
+      <div className={'no-print'} style={{display: "flex", justifyContent: "space-between"}}>
+        <div>
+          {wsList.map(ws => (
+            <button key={ws} onClick={() => setCurWs([ws[0], ws[2]])}>{ws[1]}</button>
+          ))}
+        </div>
+        <div>
           {wbs.length > 0 && (
-            <b>{wbs[0].fileName}</b>
+            <b>Schema: {wbs[0].fileName}</b>
           )}
+        </div>
+        <div>
           <ManageFiles applyChanges={applyFiles}/>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import {applyTint, extractThemeColors, indexedColors} from "./indexedColors.js";
 import {isPlainObject} from "./utils.js";
+import {CellTag} from "./CellTag.jsx";
 
 export class workbookHolder{
   constructor(wb, file) {
@@ -118,11 +119,13 @@ export class workbookHolder{
   }
   renderComment (cell) {
     if (!cell.note) return null;
-    return cell.note.texts.map(en => {
-      const style = {};
-      this.parseStyle(style, style, en, {font: true});
-      return <span style={style}>{en.text}</span>
-    });
+    return <CellTag>
+      {cell.note.texts.map(en => {
+        const style = {};
+        this.parseStyle(style, style, en, {font: true});
+        return <span style={style}>{en.text}</span>
+      })}
+    </CellTag>
   }
   parseStyle (style, style2, cell, parts = {alignment: true, border: true, font: true, fill: true}) {
     if (parts.alignment) this.parseAlignment(style2, cell.alignment);

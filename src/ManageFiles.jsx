@@ -88,7 +88,7 @@ export default function ManageFiles({ applyChanges }) {
       const urls = Object.keys(import.meta.glob('/public/e/*')).map(_ => _.slice(7));
 
       const files = await Promise.all(
-        urls.slice(0, 2).map(async (url, index) => {
+        urls.slice(0, 3).map(async (url, index) => {
           const response = await fetch(url);
           const blob = await response.blob();
 
