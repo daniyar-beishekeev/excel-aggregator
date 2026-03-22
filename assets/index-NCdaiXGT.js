@@ -40052,7 +40052,7 @@ function DiffCell({ cell, wbHolder, wss, props }) {
       tags.push(/* @__PURE__ */ jsxRuntimeExports.jsx(CellTag, { color: "blue", children: "Aggregated cell(sum)" }));
       value = wss.reduce((acc, curWs) => acc + (getRawValue(curWs.getCell(cell.address)) ?? 0), getRawValue(cell) ?? 0);
     } else {
-      customProps.widthCoef = wss.length;
+      customProps.widthCoef = wss.length + 1;
       value = /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { background: backgroundColor() }, children: value }),
         wss.map((curWs, idx) => {
@@ -40140,4 +40140,4 @@ function App() {
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-B1wqUaG0.js.map
+//# sourceMappingURL=index-NCdaiXGT.js.map
