@@ -271,7 +271,7 @@ export class workbookHolder{
   parseFont (style, font) {
     const f = font;
     if (f.name) style.fontFamily = f.name;
-    if (f.size) style.fontSize = `${f.size * 1.3333 / 14}em`;
+    if (f.size) style.fontSize = `${f.size * 1.3333}px`;
     if (f.bold) style.fontWeight = "bold";
     if (f.italic) style.fontStyle = "italic";
     if (f.underline) style.textDecoration = "underline";

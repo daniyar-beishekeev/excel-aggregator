@@ -84,6 +84,7 @@ export default function ManageFiles({ applyChanges }) {
   };
 
   useEffect(() => {
+    if (!import.meta.env.DEV) return;
     (async () => {
       const urls = Object.keys(import.meta.glob('/public/e/*')).map(_ => _.slice(7));
 
@@ -109,7 +110,12 @@ export default function ManageFiles({ applyChanges }) {
         <div style={overlayStyle} onClick={() => setOpen(false)}>
           <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setOpen(false)} style={buttonStyle}>❌</button>
-            <input type="file" multiple onChange={handleFileAdd} />
+            <div style={{display: 'flex', justifyContent: 'middle'}}>
+              <input type="file" multiple onChange={handleFileAdd} />
+              <button onClick={() => {
+                setFiles([]);
+              }}>🗑️</button>
+            </div>
             <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext
                 items={files.map(f => f.id)}
@@ -145,12 +151,12 @@ const overlayStyle = {
   justifyContent: "center",
   alignItems: "flex-start",
   paddingTop: "20vh",
-  zIndex: 9999
+  zIndex: 99999
 };
 
 const modalStyle = {
   background: "#fff",
-  padding: "20px",
+  padding: "30px 20px",
   borderRadius: "8px",
   width: "fit-content",
   maxWidth: "80vw",

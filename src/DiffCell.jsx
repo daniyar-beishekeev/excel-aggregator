@@ -12,7 +12,7 @@ const bgColors =  [
   "#e84393",
   "#ebf83b",
 ]
-const backgroundColor = (idx = 0) => {
+export const backgroundColor = (idx = 0) => {
   return bgColors[idx % bgColors.length];
 }
 
@@ -25,9 +25,17 @@ export function DiffCell({cell, wbHolder, wss, props}) {
   const customProps = {};
   const getValue = wbHolder.getHTMLValue.bind(wbHolder);
   const getRawValue = wbHolder.getRawValue.bind(wbHolder);
+  const cellSize = wbHolder.cellSize(cell);
   let value = getValue(cell);
 
-  if (wss.some(curWs => curWs.getCell(cell.address).html !== cell.html)){
+  if (wss.some(curWs => {
+    const otherSize = wbHolder.cellSize(curWs.getCell(cell.address));
+    return cellSize.rowSpan !== otherSize.rowSpan || cellSize.colSpan !== otherSize.colSpan;
+  })) {
+    tags.push(<CellTag color={"black"}/>)
+  }
+
+  if (wss.some(curWs => curWs.getCell(cell.address).html !== cell.html)) {
     tags.push(<CellTag color={"purple"}/>)
     const sumAggregate = isNumberOrNull(getRawValue(cell)) && wss.every(curWs => isNumberOrNull(getRawValue(curWs.getCell(cell.address))));
     if (sumAggregate) {
@@ -53,8 +61,9 @@ export function DiffCell({cell, wbHolder, wss, props}) {
     }
   }
 
-  let comment = wbHolder.renderComment(cell);
-  return <BasicCell cell={cell} wbHolder={wbHolder} props={{...props, ...customProps}} tags={[comment, ...tags]}>
+  const comment = wbHolder.renderComment(cell);
+  if (comment) tags.push(comment)
+  return <BasicCell cell={cell} wbHolder={wbHolder} props={{...props, ...customProps}} tags={tags}>
     {value}
   </BasicCell>
 }

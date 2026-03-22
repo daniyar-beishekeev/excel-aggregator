@@ -1,10 +1,10 @@
-import {useCallback, useMemo, useRef, useState} from "react";
+import {useCallback, useMemo, useState} from "react";
 import "./App.css"
 import ManageFiles from "./ManageFiles.jsx";
 import LoadingOverlay from "./LoadingOverlay.jsx";
 import {workbookHolder} from "./workbookHolder.jsx";
 import {BasicTable} from "./BasicTable.jsx";
-import {DiffCell} from "./DiffCell.jsx";
+import {DiffCell, backgroundColor} from "./DiffCell.jsx";
 
 function App() {
   /** @type {import('exceljs').Workbook[]} */
@@ -18,6 +18,7 @@ function App() {
     setCurWs(null);
     if (files.length === 0) {
       setWsList([]);
+      setLoading(false);
       setWbs([]);
       return;
     }
@@ -28,7 +29,6 @@ function App() {
     setWsList(wbHandler.wb.worksheets.map(ws => [wbHandler.id, ws.name, ws.id]));
     setLoading(false);
   }
-  const containerRef = useRef(null);
 
   const ws = useMemo(() => {
     if (!wbs?.length || !curWs) return null;
@@ -70,7 +70,7 @@ function App() {
   }, [curWs, ws, wbs, cellEvaluator]);
 
   return (
-    <>
+    <div style={{display: 'flex', flexDirection: 'column', gap: 5}}>
       <LoadingOverlay visible={loading} />
       <div className={'no-print'} style={{display: "flex", justifyContent: "space-between"}}>
         <div>
@@ -87,10 +87,15 @@ function App() {
           <ManageFiles applyChanges={applyFiles}/>
         </div>
       </div>
-      <div style={{ height: '80vh', overflow: "auto", resize: "both" }} ref={containerRef}>
-        {table}
-      </div>
-    </>
+      {wbs && (<div style={{display: 'flex', gap: 5, overflow: 'auto', backgroundColor: '#eee'}}>
+        {wbs.map((ws, idx) => (
+          <b key={ws.id} style={{backgroundColor: backgroundColor(idx)}}>
+            {ws.fileName}
+          </b>
+        ))}
+      </div>)}
+      {table}
+    </div>
   );
 }
 
