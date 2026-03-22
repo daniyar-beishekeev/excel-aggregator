@@ -1,0 +1,93 @@
+.excel{
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.excel thead {
+    background: #e4e4e4;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+}
+
+.excel thead th {
+    border: 1px solid gray;
+    border-top: 0;
+    padding: 0;
+}
+
+.excel .colHead{
+    position: sticky;
+    left: 0;
+    background: #e4e4e4;
+    z-index: 9999;
+    padding: 0 2px;
+    text-align: center;
+    border: 1px solid black;
+}
+
+.excel td{
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
+    white-space: pre;
+}
+.excel td .cell-content{
+    box-sizing: border-box;
+    padding-left: 3px;
+    overflow: visible;
+    display: flex;
+    position: relative;
+}
+
+.cell-content:hover {
+    z-index: 99;
+}
+
+.excel .selection:hover .cell-content{
+    background-color: rgba(211, 211, 211, 0.5) !important;
+}
+
+button, select, input {
+    margin: 0 2px;
+}
+@media print {
+    .no-print *{
+        display: none;
+    }
+}
+.tag-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+}
+.comment-indicator {
+    z-index: 999;
+    position: relative;
+    width: 0.4em;
+    height: 0.6em;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+    background: red;
+}
+.comment-wrapper {
+    margin-left: 0.2em;
+    position: relative;
+}
+
+.comment-popup {
+    display: none;
+    min-width: 11em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background: #ffffe1;
+    border: 1px solid #ccc;
+    z-index: 9999;
+    white-space: pre-wrap;
+    padding: 0.5em;
+}
+
+.comment-wrapper:hover .comment-popup {
+    display: block;
+}
