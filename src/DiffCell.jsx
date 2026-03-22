@@ -48,7 +48,7 @@ export function DiffCell({cell, wbHolder, wss, props}) {
       </CellTag>)
       value = wss.reduce((acc, curWs) => acc + (getRawValue(curWs.getCell(cell.address)) ?? 0), getRawValue(cell) ?? 0);
     } else {
-      customProps.widthCoef = wss.length;
+      customProps.widthCoef = wss.length + 1;
       value = <>
         <div style={{background: backgroundColor()}}>
           {value}
