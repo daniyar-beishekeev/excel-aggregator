@@ -86,7 +86,8 @@ export default function ManageFiles({ applyChanges }) {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     (async () => {
-      const urls = Object.keys(import.meta.glob('/public/e/*')).map(_ => _.slice(7));
+      const urls = Object.keys(import.meta.glob('/public/e/*')).map(_ => _.slice(7))
+        .map(e => import.meta.env.BASE_URL + e);
 
       const files = await Promise.all(
         urls.slice(0, 3).map(async (url, index) => {
