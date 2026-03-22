@@ -40043,13 +40043,13 @@ function DiffCell({ cell, wbHolder, wss, props }) {
     const otherSize = wbHolder.cellSize(curWs.getCell(cell.address));
     return cellSize.rowSpan !== otherSize.rowSpan || cellSize.colSpan !== otherSize.colSpan;
   })) {
-    tags.push(/* @__PURE__ */ jsxRuntimeExports.jsx(CellTag, { color: "black" }));
+    tags.push(/* @__PURE__ */ jsxRuntimeExports.jsx(CellTag, { color: "black", children: "Different cell size detected" }));
   }
   if (wss.some((curWs) => curWs.getCell(cell.address).html !== cell.html)) {
-    tags.push(/* @__PURE__ */ jsxRuntimeExports.jsx(CellTag, { color: "purple" }));
+    tags.push(/* @__PURE__ */ jsxRuntimeExports.jsx(CellTag, { color: "purple", children: "Differences found" }));
     const sumAggregate = isNumberOrNull(getRawValue(cell)) && wss.every((curWs) => isNumberOrNull(getRawValue(curWs.getCell(cell.address))));
     if (sumAggregate) {
-      tags.push(/* @__PURE__ */ jsxRuntimeExports.jsx(CellTag, { color: "blue" }));
+      tags.push(/* @__PURE__ */ jsxRuntimeExports.jsx(CellTag, { color: "blue", children: "Aggregated cell(sum)" }));
       value = wss.reduce((acc, curWs) => acc + (getRawValue(curWs.getCell(cell.address)) ?? 0), getRawValue(cell) ?? 0);
     } else {
       customProps.widthCoef = wss.length;
@@ -40140,4 +40140,4 @@ function App() {
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-C7yZbdGL.js.map
+//# sourceMappingURL=index-B1wqUaG0.js.map
