@@ -32,14 +32,20 @@ export function DiffCell({cell, wbHolder, wss, props}) {
     const otherSize = wbHolder.cellSize(curWs.getCell(cell.address));
     return cellSize.rowSpan !== otherSize.rowSpan || cellSize.colSpan !== otherSize.colSpan;
   })) {
-    tags.push(<CellTag color={"black"}/>)
+    tags.push(<CellTag color={"black"}>
+      Different cell size detected
+    </CellTag>)
   }
 
   if (wss.some(curWs => curWs.getCell(cell.address).html !== cell.html)) {
-    tags.push(<CellTag color={"purple"}/>)
+    tags.push(<CellTag color={"purple"}>
+      Differences found
+    </CellTag>)
     const sumAggregate = isNumberOrNull(getRawValue(cell)) && wss.every(curWs => isNumberOrNull(getRawValue(curWs.getCell(cell.address))));
     if (sumAggregate) {
-      tags.push(<CellTag color={"blue"}/>)
+      tags.push(<CellTag color={"blue"}>
+        Aggregated cell(sum)
+      </CellTag>)
       value = wss.reduce((acc, curWs) => acc + (getRawValue(curWs.getCell(cell.address)) ?? 0), getRawValue(cell) ?? 0);
     } else {
       customProps.widthCoef = wss.length;
