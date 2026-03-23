@@ -94,7 +94,9 @@ function App() {
           </b>
         ))}
       </div>)}
-      {table}
+      <div style={{ height: '80vh', overflow: "auto", resize: "both" }}>
+        {table}
+      </div>
     </div>
   );
 }

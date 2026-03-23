@@ -58,7 +58,7 @@ export function DiffCell({cell, wbHolder, wss, props}) {
             <>
               <span style={{margin: "0 6px"}}>→</span>
               <div style={{background: backgroundColor(idx + 1)}}>
-                {getValue(curWs.getCell(cell.address))}
+                {getValue(curWs.getCell(cell.address)) ?? ' '}
               </div>
             </>
           )
