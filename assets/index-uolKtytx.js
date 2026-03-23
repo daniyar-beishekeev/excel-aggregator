@@ -40058,7 +40058,7 @@ function DiffCell({ cell, wbHolder, wss, props }) {
         wss.map((curWs, idx) => {
           return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { margin: "0 6px" }, children: "→" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { background: backgroundColor(idx + 1) }, children: getValue(curWs.getCell(cell.address)) })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { background: backgroundColor(idx + 1) }, children: getValue(curWs.getCell(cell.address)) ?? " " })
           ] });
         })
       ] });
@@ -40134,10 +40134,10 @@ function App() {
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ManageFiles, { applyChanges: applyFiles }) })
     ] }),
     wbs && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { display: "flex", gap: 5, overflow: "auto", backgroundColor: "#eee" }, children: wbs.map((ws2, idx) => /* @__PURE__ */ jsxRuntimeExports.jsx("b", { style: { backgroundColor: backgroundColor(idx) }, children: ws2.fileName }, ws2.id)) }),
-    table
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { height: "80vh", overflow: "auto", resize: "both" }, children: table })
   ] });
 }
 clientExports.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );
-//# sourceMappingURL=index-NCdaiXGT.js.map
+//# sourceMappingURL=index-uolKtytx.js.map
