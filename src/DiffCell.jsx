@@ -1,5 +1,6 @@
 import {BasicCell} from "./BasicCell.jsx";
 import {CellTag} from "./CellTag.jsx";
+import {format} from 'ssf';
 
 const bgColors =  [
   "lightgreen",
@@ -69,6 +70,8 @@ export function DiffCell({cell, wbHolder, wss, props}) {
 
   const comment = wbHolder.renderComment(cell);
   if (comment) tags.push(comment)
+
+  if (cell.numFmt && typeof value === 'number') value = format(cell.numFmt, value);
   return <BasicCell cell={cell} wbHolder={wbHolder} props={{...props, ...customProps}} tags={tags}>
     {value}
   </BasicCell>

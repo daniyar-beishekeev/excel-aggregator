@@ -78,7 +78,7 @@ export default function ManageFiles({ applyChanges }) {
     let selected = Array.from(e.target.files || []);
     e.target.value = "";
     selected.forEach(file => file.id = crypto.randomUUID());
-    selected = selected.filter(file => file.name.endsWith('.xlsx'))
+    selected = selected.filter(file => (file.name.endsWith('.xlsx') && !file.name.startsWith('~$')))
     if (!selected.length) return;
     setFiles(prev => [...prev, ...selected]);
   };
@@ -86,7 +86,7 @@ export default function ManageFiles({ applyChanges }) {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     (async () => {
-      const urls = Object.keys(import.meta.glob('/public/e/*')).map(_ => _.slice(7))
+      const urls = Object.keys(import.meta.glob('/public/*')).map(_ => _.slice(7))
         .map(e => import.meta.env.BASE_URL + e);
 
       const files = await Promise.all(

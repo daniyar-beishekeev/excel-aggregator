@@ -90,7 +90,7 @@ export class workbookHolder{
       if (cell.formula) {
         return cell.result?.error ?? cell.result ?? null;
       }else if (val.richText) {
-        return val.richText.map(en => en.text)
+        return val.richText.map(en => en.text).join(' ')
       }
     }
     throw new Error("Unable to parse cell value");
