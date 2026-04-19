@@ -1,0 +1,243 @@
+{
+  "display": "form",
+  "components": [
+    {
+      "type": "panel",
+      "title": "Data Settings",
+      "key": "dataSettings",
+      "components": [
+        {
+          "type": "select",
+          "label": "Value Mode",
+          "key": "valueMode",
+          "data": {
+            "values": [
+              {
+                "label": "Raw Value",
+                "value": "raw"
+              },
+              {
+                "label": "Formula",
+                "value": "formula"
+              },
+              {
+                "label": "Cell type",
+                "value": "formula"
+              },
+              {
+                "label": "Formula",
+                "value": "formula"
+              }
+            ]
+          },
+          "defaultValue": "raw",
+          "input": true,
+          "tableView": true
+        },
+        {
+          "label": "Format numbers",
+          "tableView": false,
+          "validateWhenHidden": false,
+          "key": "formatNumbers",
+          "type": "checkbox",
+          "input": true,
+          "defaultValue": true
+        },
+        {
+          "type": "select",
+          "label": "Null Handling",
+          "key": "nullHandling",
+          "data": {
+            "values": [
+              {
+                "label": "Show Blank",
+                "value": "blank"
+              },
+              {
+                "label": "Replace with 0",
+                "value": "zero"
+              },
+              {
+                "label": "Custom Value",
+                "value": "custom"
+              }
+            ]
+          },
+          "input": true,
+          "tableView": true
+        },
+        {
+          "type": "textfield",
+          "label": "Custom Null Value",
+          "key": "customNullValue",
+          "conditional": {
+            "show": true,
+            "when": "nullHandling",
+            "eq": "custom"
+          },
+          "input": true,
+          "tableView": true
+        }
+      ],
+      "input": false,
+      "tableView": false,
+      "label": "Panel"
+    },
+    {
+      "type": "panel",
+      "title": "Aggregation & Grouping",
+      "key": "aggregation",
+      "components": [
+        {
+          "type": "select",
+          "label": "Aggregation Mode",
+          "key": "aggregationMode",
+          "data": {
+            "values": [
+              {
+                "label": "Diff",
+                "value": "diff"
+              },
+              {
+                "label": "Frequency chart",
+                "value": "frequency"
+              },
+              {
+                "label": "Count distinct",
+                "value": "distinctCount"
+              },
+              {
+                "label": "Distinct Set",
+                "value": "distinct"
+              }
+            ]
+          },
+          "defaultValue": "diff",
+          "input": true,
+          "tableView": true
+        },
+        {
+          "type": "select",
+          "label": "Custom Number Aggregation",
+          "key": "numberAggregation",
+          "data": {
+            "values": [
+              {
+                "label": "None",
+                "value": "none"
+              },
+              {
+                "label": "Sum",
+                "value": "sum"
+              },
+              {
+                "label": "Sub (for 2 files)",
+                "value": "sub"
+              },
+              {
+                "label": "Average",
+                "value": "avg"
+              },
+              {
+                "label": "Min",
+                "value": "min"
+              },
+              {
+                "label": "Max",
+                "value": "max"
+              }
+            ]
+          },
+          "defaultValue": "none",
+          "input": true,
+          "tableView": true
+        }
+      ],
+      "input": false,
+      "tableView": false,
+      "label": "Panel"
+    },
+    {
+      "type": "panel",
+      "title": "Cell Tags",
+      "key": "cellTags",
+      "components": [
+        {
+          "type": "checkbox",
+          "label": "Enable Tags",
+          "key": "enableTags",
+          "defaultValue": true,
+          "input": true,
+          "tableView": false
+        },
+        {
+          "type": "checkbox",
+          "label": "Mark Differences",
+          "key": "markDifferences",
+          "defaultValue": true,
+          "input": true,
+          "conditional": {
+            "show": true,
+            "when": "enableTags",
+            "eq": true
+          },
+          "tableView": false
+        },
+        {
+          "type": "checkbox",
+          "label": "Mark Formula Errors",
+          "key": "markFormulaErrors",
+          "defaultValue": true,
+          "input": true,
+          "conditional": {
+            "show": true,
+            "when": "enableTags",
+            "eq": true
+          },
+          "tableView": false
+        },
+        {
+          "type": "checkbox",
+          "label": "Show Comments",
+          "key": "showComments",
+          "input": true,
+          "conditional": {
+            "show": true,
+            "when": "enableTags",
+            "eq": true
+          },
+          "tableView": false
+        },
+        {
+          "type": "checkbox",
+          "label": "Highlight Missing Values",
+          "key": "highlightMissing",
+          "input": true,
+          "conditional": {
+            "show": true,
+            "when": "enableTags",
+            "eq": true
+          },
+          "tableView": false
+        },
+        {
+          "label": "Show formula in tags",
+          "tableView": false,
+          "validateWhenHidden": false,
+          "key": "highlightMissing1",
+          "conditional": {
+            "show": true,
+            "when": "enableTags",
+            "eq": true
+          },
+          "type": "checkbox",
+          "input": true,
+          "defaultValue": false
+        }
+      ],
+      "input": false,
+      "tableView": false,
+      "label": "Panel"
+    }
+  ]
+}

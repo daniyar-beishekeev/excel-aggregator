@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useRef, useCallback} from "react";
 
 import {
   DndContext,
@@ -13,6 +13,7 @@ import {
 } from "@dnd-kit/sortable";
 
 import { CSS } from "@dnd-kit/utilities";
+import {Button, Modal, Stack} from "react-bootstrap";
 
 function SortableItem({ item, removeFile }) {
   const {
@@ -45,15 +46,17 @@ function SortableItem({ item, removeFile }) {
           userSelect: "none"
         }}
       >☰</span>
-      <span style={{ flex: 1 }}>
+      <span style={{ flex: 1 }} className={"font-monospace"}>
         {item.name}
       </span>
-      <button
+      <Button
+        variant={"secondary"}
+        className={"btn-sm"}
         onClick={(e) => {
           e.stopPropagation();
           removeFile(item.id);
         }}
-      >❌</button>
+      >❌</Button>
     </li>
   );
 }
@@ -61,6 +64,10 @@ function SortableItem({ item, removeFile }) {
 export default function ManageFiles({ applyChanges }) {
   const [files, setFiles] = useState([]);
   const [open, setOpen] = useState(false);
+  const manageFiles = useCallback(() => {
+    setOpen(false);
+    applyChanges(files);
+  }, [applyChanges, files]);
 
   const removeFile = (id) => {
     setFiles(prev => prev.filter(f => f.id !== id));
@@ -74,6 +81,7 @@ export default function ManageFiles({ applyChanges }) {
       return arrayMove(items, oldIndex, newIndex);
     });
   };
+  const fileAddInput = useRef(null);
   const handleFileAdd = (e) => {
     let selected = Array.from(e.target.files || []);
     e.target.value = "";
@@ -106,17 +114,20 @@ export default function ManageFiles({ applyChanges }) {
   }, []);
   return (
     <>
-      <button onClick={() => setOpen(true)}>Manage Files</button>
-      {open && (
-        <div style={overlayStyle} onClick={() => setOpen(false)}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setOpen(false)} style={buttonStyle}>❌</button>
-            <div style={{display: 'flex', justifyContent: 'middle'}}>
-              <input type="file" multiple onChange={handleFileAdd} />
-              <button onClick={() => {
-                setFiles([]);
-              }}>🗑️</button>
-            </div>
+      <Button type="button" className={"btn btn-info btn-sm"} onClick={() => setOpen(true)}>Manage Files</Button>
+      <Modal show={open} onHide={manageFiles}>
+        <Modal.Header closeButton>
+          <Modal.Title>Manage files</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Stack gap={2}>
+            <Stack direction="horizontal" gap={1}>
+              <input type="file" style={{"display": "none"}} ref={fileAddInput} multiple onChange={handleFileAdd} />
+              <Button variant="info" className={"btn-sm"} onClick={() => fileAddInput.current.click()}>➕</Button>
+              <Button variant="danger" className={"btn-sm"} onClick={() => {
+                if (confirm('Clean files list')) setFiles([]);
+              }}>🗑</Button>
+            </Stack>
             <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext
                 items={files.map(f => f.id)}
@@ -133,42 +144,12 @@ export default function ManageFiles({ applyChanges }) {
                 </ul>
               </SortableContext>
             </DndContext>
-            <button onClick={() => {
-              setOpen(false);
-              applyChanges(files);
-            }}>Apply</button>
-          </div>
-        </div>
-      )}
+          </Stack>
+        </Modal.Body>
+        <Modal.Footer className="justify-content-start">
+          <Button onClick={manageFiles}>Ok</Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }
-
-const overlayStyle = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.5)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "flex-start",
-  paddingTop: "20vh",
-  zIndex: 99999
-};
-
-const modalStyle = {
-  background: "#fff",
-  padding: "30px 20px",
-  borderRadius: "8px",
-  width: "fit-content",
-  maxWidth: "80vw",
-  minWidth: "30vw",
-  overflow: "auto",
-  maxHeight: "70vh",
-  position: "relative",
-};
-
-const buttonStyle = {
-  position: "absolute",
-  right: 5,
-  top: 5
-};
