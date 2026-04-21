@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import "./App.css"
 import ManageFiles from "./ManageFiles.jsx";
 import LoadingOverlay from "./LoadingOverlay.jsx";
@@ -10,8 +10,16 @@ import {CellEvaluatorParameters} from "./CellEvaluatorParameters.jsx";
 import {WbSheetsMap} from "./WbSheetsMap.jsx";
 import {PrivacyPolicy} from "./PrivacyPolicy.jsx";
 import {Workbook} from "exceljs";
+import {useTranslation} from "react-i18next";
+import i18n from './i18n';
+import persistentState from "./persistentState.js";
 
 function App() {
+  const {t} = useTranslation();
+  const [lang, setLang] = persistentState("lang", "ru");
+  useEffect(() => {
+    i18n.changeLanguage(lang);
+  }, [lang]);
   /** @type {import('exceljs').Workbook[]} */
   const [wbs, setWbs] = useState([]);
   const [wsList, setWsList] = useState([]);
@@ -87,7 +95,7 @@ function App() {
         <Stack gap={1}>
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <Stack direction={"horizontal"} gap={1}>
-              <b>Sheet: </b>
+              <b>{t('Sheet')}: </b>
               <select defaultValue={"none"} onChange={e => setCurWs(JSON.parse(e.target.value))}>
                 <option value={"none"} disabled>*Select sheet</option>
                 {wsList.map(ws => (
@@ -103,7 +111,7 @@ function App() {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu>
-                  {['en', 'ru'].map(ln => <Dropdown.Item key={ln} onClick={() => alert(ln)}>{ln}</Dropdown.Item>)}
+                  {['en', 'ru'].map(ln => <Dropdown.Item key={ln} onClick={() => setLang(ln)}>{ln}</Dropdown.Item>)}
                 </Dropdown.Menu>
               </Dropdown>
               <CellEvaluatorParameters applyChanges={setCellParams}/>
