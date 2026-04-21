@@ -58,13 +58,9 @@ export class workbookHolder{
     }
   }
   getHTMLValue (cell) {
-    if (cell.value == null) return null;
-    else if(['string', 'number'].includes(typeof cell.value)) return cell.value;
-    else if(isPlainObject(cell.value)){
+    if(isPlainObject(cell.value)){
       const val = cell.value ?? {};
-      if (cell.formula) {
-        return cell.result?.error ?? cell.result ?? null;
-      }else if (val.richText) {
+      if (val.richText) {
         const value = val.richText.map(en => {
           const style = {};
           this.parseStyle(style, style, en, {font: true})
@@ -80,7 +76,7 @@ export class workbookHolder{
         return <div>{value}</div>;
       }
     }
-    return "NOT EVALUATED";
+    return this.getRawValue(cell);
   }
   getRawValue (cell) {
     if (cell.value == null) return null;

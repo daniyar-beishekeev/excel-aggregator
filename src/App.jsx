@@ -50,16 +50,18 @@ function App() {
     );
   }, [wbs, ws]);
 
+  const [cellParams, setCellParams] = useState(null);
   const cellEvaluator = useCallback(
     (cell, props) => (
       <DiffCell
         cell={cell}
         wbHolder={wbs[0]}
         wss={wss}
+        cellParams={cellParams}
         props={props}
       />
     ),
-    [wbs, wss]
+    [wbs, wss, cellParams]
   );
 
   const table = useMemo(() => {
@@ -81,7 +83,7 @@ function App() {
     <div className="d-flex flex-column vh-100">
       <PrivacyPolicy/>
       <LoadingOverlay visible={loading} />
-      <header className="py-2 px-1 position-fixed top-0 start-0 w-100">
+      <header className="py-2 px-1 position-fixed top-0 start-0 w-100" style={{ zIndex: 12}}>
         <Stack gap={1}>
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <Stack direction={"horizontal"} gap={1}>
@@ -101,10 +103,10 @@ function App() {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu>
-                  {['en', 'ru'].map(ln => <Dropdown.Item onClick={() => alert(ln)}>{ln}</Dropdown.Item>)}
+                  {['en', 'ru'].map(ln => <Dropdown.Item key={ln} onClick={() => alert(ln)}>{ln}</Dropdown.Item>)}
                 </Dropdown.Menu>
               </Dropdown>
-              <CellEvaluatorParameters/>
+              <CellEvaluatorParameters applyChanges={setCellParams}/>
               <ManageFiles applyChanges={applyFiles}/>
             </Stack>
           </div>
