@@ -1,6 +1,7 @@
 import {BasicCell} from "./BasicCell.jsx";
 import {CellTag} from "./CellTag.jsx";
 import {format} from 'ssf';
+import {useTranslation} from "react-i18next";
 
 const bgColors =  [
   "lightgreen",
@@ -23,7 +24,7 @@ const isNumberOrNull = (x) => {
 
 const GroupDelimiter = ({children}) => <span className={"mx-1"}>{children}</span>
 
-const getFormulaResolver = (formula) => {
+const getFormulaResolver = (formula, t) => {
   const round = (num) => Number(num.toFixed(3));
   const resolvers = {
     sum: (arr) =>
@@ -53,7 +54,7 @@ const getFormulaResolver = (formula) => {
     },
   };
 
-  return resolvers[formula] || (() => 'No resolver');
+  return resolvers[formula] || (() => t('No resolver'));
 }
 
 const frequencyList = (arr) => {
@@ -68,6 +69,7 @@ const frequencyList = (arr) => {
 }
 
 export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
+  const {t} = useTranslation();
   cellParams = new Map(Object.entries(cellParams));
   const tags = [];
   const customProps = {};
@@ -109,8 +111,8 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
   let aggregationEngine = null;
   if (numberAggregation !== 'none') {
     if (rawVals.every(isNumberOrNull)) {
-      value = getFormulaResolver(numberAggregation)(rawVals);
-      aggregationEngine = `Number-${numberAggregation}`;
+      value = getFormulaResolver(numberAggregation, t)(rawVals);
+      aggregationEngine = `${t('Number')}-${t(numberAggregation)}`;
     }
   }
   const aggregationMode = cellParams.get('aggregationMode');
@@ -120,7 +122,7 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
       customProps.widthCoef = wss.length + 1;
       if (cellParams.get('markDifferences'))
         tags.push(<CellTag color={"purple"}>
-          Differences found
+          {t('Differences found')}
         </CellTag>)
       value = <>
         <div style={{background: backgroundColor()}}>
@@ -180,7 +182,7 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
     }
   }
   if (aggregationEngine)
-    tags.push(<CellTag color={"blue"}>Aggregated cell ({aggregationEngine})</CellTag>)
+    tags.push(<CellTag color={"blue"}>{t('Aggregated cell')} ({t(aggregationEngine)})</CellTag>)
 
   if (cellParams.get('markFormulaErrors')) {
     const formulaErr = cell.result?.error;
@@ -188,7 +190,7 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
   }
 
   if (cellParams.get('highlightMissing')) {
-    if (rawVals.some(_ => _ == null)) tags.push(<CellTag color={"cyan"}>Missing value exist</CellTag>)
+    if (rawVals.some(_ => _ == null)) tags.push(<CellTag color={"cyan"}>{t('Missing value exist')}</CellTag>)
   }
 
   if (cellParams.get('showFormulaInTag')) {

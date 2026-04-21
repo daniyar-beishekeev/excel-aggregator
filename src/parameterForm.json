@@ -220,7 +220,7 @@
           "tableView": false
         },
         {
-          "label": "Show formula in tags (only 1st file)",
+          "label": "Wrap formula",
           "tableView": false,
           "validateWhenHidden": false,
           "key": "showFormulaInTag",

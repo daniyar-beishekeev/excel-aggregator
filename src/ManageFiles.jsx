@@ -14,6 +14,7 @@ import {
 
 import { CSS } from "@dnd-kit/utilities";
 import {Button, Modal, Stack} from "react-bootstrap";
+import {useTranslation} from "react-i18next";
 
 function SortableItem({ item, removeFile }) {
   const {
@@ -62,6 +63,7 @@ function SortableItem({ item, removeFile }) {
 }
 
 export default function ManageFiles({ applyChanges }) {
+  const {t} = useTranslation();
   const [files, setFiles] = useState([]);
   const [open, setOpen] = useState(false);
   const manageFiles = useCallback(() => {
@@ -114,10 +116,10 @@ export default function ManageFiles({ applyChanges }) {
   }, []);
   return (
     <>
-      <Button type="button" className={"btn btn-info btn-sm"} onClick={() => setOpen(true)}>Manage Files</Button>
+      <Button type="button" className={"btn btn-info btn-sm"} onClick={() => setOpen(true)}>{t('Manage Files')}</Button>
       <Modal show={open} onHide={manageFiles}>
         <Modal.Header closeButton>
-          <Modal.Title>Manage files</Modal.Title>
+          <Modal.Title>{t('Manage Files')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Stack gap={2}>
@@ -125,7 +127,7 @@ export default function ManageFiles({ applyChanges }) {
               <input type="file" style={{"display": "none"}} ref={fileAddInput} multiple onChange={handleFileAdd} />
               <Button variant="info" className={"btn-sm"} onClick={() => fileAddInput.current.click()}>➕</Button>
               <Button variant="danger" className={"btn-sm"} onClick={() => {
-                if (confirm('Clean files list')) setFiles([]);
+                if (confirm(t('Clean files list'))) setFiles([]);
               }}>🗑</Button>
             </Stack>
             <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -147,7 +149,7 @@ export default function ManageFiles({ applyChanges }) {
           </Stack>
         </Modal.Body>
         <Modal.Footer className="justify-content-start">
-          <Button onClick={manageFiles}>Ok</Button>
+          <Button onClick={manageFiles}>{t('Apply')}</Button>
         </Modal.Footer>
       </Modal>
     </>

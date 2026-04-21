@@ -3,8 +3,19 @@ import React, {useCallback, useEffect, useState} from "react";
 import {Form} from "@formio/react";
 import parameterForm from "./parameterForm.json";
 import persistentState from "./persistentState.js";
+import {useTranslation} from "react-i18next";
+import i18n from "./i18n.js";
+
+const buildFormioI18n = () => {
+  const lang = i18n.language;
+  return {
+    language: lang,
+    i18n: {[lang]: i18n.getResourceBundle(lang, 'translation')}
+  };
+};
 
 export function CellEvaluatorParameters({applyChanges}) {
+  const {t} = useTranslation();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = persistentState("parameters", {});
   const [draftData, setDraftData] = useState(formData);
@@ -20,20 +31,21 @@ export function CellEvaluatorParameters({applyChanges}) {
 
   return (
     <>
-      <Button type="button" className={"btn btn-info btn-sm"} onClick={() => setOpen(true)}>Parameters</Button>
+      <Button type="button" className={"btn btn-info btn-sm"} onClick={() => setOpen(true)}>{t('Parameters')}</Button>
       <Modal show={open} onHide={setParameters} dialogClassName="modal-90w">
         <Modal.Header closeButton>
-          <Modal.Title>Parameters</Modal.Title>
+          <Modal.Title>{t('Parameters')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form
             submission={{data: formData}}
             src={parameterForm}
+            options={buildFormioI18n()}
             onChange={_ => setDraftData(_.data)}
           />
         </Modal.Body>
         <Modal.Footer className="justify-content-start">
-          <Button onClick={setParameters}>Apply</Button>
+          <Button onClick={setParameters}>{t('Apply')}</Button>
         </Modal.Footer>
       </Modal>
     </>

@@ -51,11 +51,8 @@ function App() {
 
   const wss = useMemo(() => {
     if (!ws) return [];
-    const emptyWs = new Workbook().addWorksheet('(Empty)')
-    return wbs.slice(1).map(wbHolder => {
-      return wbHolder.wb.getWorksheet(ws.name) ?? emptyWs;
-    }
-    );
+    const emptyWs = new Workbook().addWorksheet(`(${t('Empty')})`)
+    return wbs.slice(1).map(wbHolder => (wbHolder.wb.getWorksheet(ws.name) ?? emptyWs));
   }, [wbs, ws]);
 
   const [cellParams, setCellParams] = useState(null);
@@ -97,7 +94,7 @@ function App() {
             <Stack direction={"horizontal"} gap={1}>
               <b>{t('Sheet')}: </b>
               <select defaultValue={"none"} onChange={e => setCurWs(JSON.parse(e.target.value))}>
-                <option value={"none"} disabled>*Select sheet</option>
+                <option value={"none"} disabled>*{t('Select sheet')}</option>
                 {wsList.map(ws => (
                   <option key={ws} value={JSON.stringify([ws[0], ws[2]])}>{ws[1]}</option>
                 ))}
