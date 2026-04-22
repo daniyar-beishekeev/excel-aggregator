@@ -23,12 +23,12 @@ function App() {
   /** @type {import('exceljs').Workbook[]} */
   const [wbs, setWbs] = useState([]);
   const [wsList, setWsList] = useState([]);
-  const [curWs, setCurWs] = useState(null);
+  const [curWs, setCurWs] = useState("none");
   const [loading, setLoading] = useState(false);
 
   const applyFiles = useCallback(async (files) => {
     setLoading(true);
-    setCurWs(null);
+    setCurWs("none");
     if (files.length === 0) {
       setWsList([]);
       setLoading(false);
@@ -45,8 +45,8 @@ function App() {
   }, [wbs]);
 
   const ws = useMemo(() => {
-    if (!wbs?.length || !curWs) return null;
-    return wbs[0].wb.getWorksheet(curWs[1]);
+    if (!wbs?.length || !curWs || curWs === "none") return null;
+    return wbs[0].wb.getWorksheet(JSON.parse(curWs)[1]);
   }, [wbs, curWs]);
 
   const wss = useMemo(() => {
@@ -76,7 +76,7 @@ function App() {
 
     return (
       <BasicTable
-        key={JSON.stringify(curWs)}
+        key={curWs}
         ws={ws}
         wbHolder={wbs[0]}
         cellEvaluator={cellEvaluator}
@@ -93,7 +93,7 @@ function App() {
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <Stack direction={"horizontal"} gap={1}>
               <b>{t('Sheet')}: </b>
-              <select defaultValue={"none"} onChange={e => setCurWs(JSON.parse(e.target.value))}>
+              <select value={curWs} onChange={e => setCurWs(e.target.value)}>
                 <option value={"none"} disabled>*{t('Select sheet')}</option>
                 {wsList.map(ws => (
                   <option key={ws} value={JSON.stringify([ws[0], ws[2]])}>{ws[1]}</option>

@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import {Button, Modal} from "react-bootstrap";
 import persistentState from "./persistentState.js";
+import {useTranslation} from "react-i18next";
 
 const policy = `
   <div>
@@ -38,6 +39,7 @@ async function hashPolicy(policyText) {
 }
 
 export function PrivacyPolicy() {
+  const {t} = useTranslation();
   const [hash, setHash] = useState(null);
   const [acceptedHash, setAcceptedHash] = persistentState("privacyPolicy", '');
   hashPolicy(policy).then(setHash);
@@ -48,7 +50,7 @@ export function PrivacyPolicy() {
           <div style={{maxHeight: '50vh', overflow: 'auto'}} dangerouslySetInnerHTML={{__html: policy}}/>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={() => setAcceptedHash(hash)}>Accept</Button>
+          <Button onClick={() => setAcceptedHash(hash)}>{t('Accept')}</Button>
         </Modal.Footer>
       </Modal>
     </>

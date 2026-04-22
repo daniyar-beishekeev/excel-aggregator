@@ -24,7 +24,7 @@ const isNumberOrNull = (x) => {
 
 const GroupDelimiter = ({children}) => <span className={"mx-1"}>{children}</span>
 
-const getFormulaResolver = (formula, t) => {
+const getFormulaResolver = (formula) => {
   const round = (num) => Number(num.toFixed(3));
   const resolvers = {
     sum: (arr) =>
@@ -54,7 +54,7 @@ const getFormulaResolver = (formula, t) => {
     },
   };
 
-  return resolvers[formula] || (() => t('No resolver'));
+  return resolvers[formula];
 }
 
 const frequencyList = (arr) => {
@@ -110,12 +110,13 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
   const rawVals = wss.map(curWs => curWs.getCell(cell.address)).concat(cell).map(getRawValue);
   let aggregationEngine = null;
   if (numberAggregation !== 'none') {
-    if (rawVals.every(isNumberOrNull)) {
-      value = getFormulaResolver(numberAggregation, t)(rawVals);
+    const resolver = getFormulaResolver(numberAggregation);
+    if (resolver && rawVals.every(isNumberOrNull)) {
+      value = resolver(rawVals);
       aggregationEngine = `${t('Number')}-${t(numberAggregation)}`;
     }
   }
-  const aggregationMode = cellParams.get('aggregationMode');
+  const aggregationMode = cellParams.get('aggregationMode') ?? 'diff';
   if (!aggregationEngine && aggregationMode !== 'none') {
     if (aggregationMode === 'diff' && rawVals.some(v => v !== rawVals[0])) {
       aggregationEngine = 'diff';
