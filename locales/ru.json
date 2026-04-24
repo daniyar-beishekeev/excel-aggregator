@@ -9,10 +9,13 @@
   "Empty": "Пусто",
   "Select sheet": "Выбрать лист",
   "Differences found": "Найдены различия",
+  "Different cell size detected": "Найдены различия структуры ячейки",
   "Number": "Число",
   "Aggregated cell": "Агрегированная ячейка",
   "Missing value exist": "Есть пропущенные значения",
   "Cell Tags": "Метки ячеек",
+  "Visual Settings": "Визуальные настройки",
+  "Stretch cell": "Растягивать ячейку",
 
   "Data Settings": "Настройки данных",
   "Value Mode": "Режим значения",
