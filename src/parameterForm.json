@@ -3,6 +3,25 @@
   "components": [
     {
       "type": "panel",
+      "title": "Visual Settings",
+      "key": "structureSettings",
+      "components": [
+        {
+          "type": "checkbox",
+          "label": "Stretch cell",
+          "key": "stretchCell",
+          "input": true,
+          "default": false,
+          "tableView": true
+        }
+      ],
+      "defaultValue": "",
+      "input": false,
+      "tableView": false,
+      "label": "Panel"
+    },
+    {
+      "type": "panel",
       "title": "Data Settings",
       "key": "dataSettings",
       "components": [

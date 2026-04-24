@@ -20,7 +20,7 @@ export function BasicCell({cell, wbHolder, props, tags, children}) {
         ...style2
       }}>
         <div style={{
-          position: "absolute",
+          position: props?.containerPosition ?? "absolute",
           display: "inherit",
         }}>
           {children}

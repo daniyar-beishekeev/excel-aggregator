@@ -101,9 +101,7 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
     const otherSize = wbHolder.cellSize(curWs.getCell(cell.address));
     return cellSize.rowSpan !== otherSize.rowSpan || cellSize.colSpan !== otherSize.colSpan;
   })) {
-    tags.push(<CellTag color={"black"}>
-      Different cell size detected
-    </CellTag>)
+    tags.push(<CellTag color={"black"}>{t('Different cell size detected')}</CellTag>)
   }
 
   const numberAggregation = cellParams.get('numberAggregation');
@@ -203,6 +201,9 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
     const comment = wbHolder.renderComment(cell);
     if (comment) tags.push(comment)
   }
+
+  if (cellParams.get('stretchCell'))
+    customProps.containerPosition = 'inherit';
   return <BasicCell cell={cell} wbHolder={wbHolder} props={{...props, ...customProps}} tags={tags}>
     {value}
   </BasicCell>
