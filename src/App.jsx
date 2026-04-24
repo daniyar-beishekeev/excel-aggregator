@@ -13,6 +13,7 @@ import {Workbook} from "exceljs";
 import {useTranslation} from "react-i18next";
 import i18n from './i18n';
 import persistentState from "./persistentState.js";
+import {MemoryUsage} from "./MemoryUsage.jsx";
 
 function App() {
   const {t} = useTranslation();
@@ -72,7 +73,7 @@ function App() {
   const table = useMemo(() => {
     if (!ws) return null;
 
-    console.log('LAST WS', ws);
+    if (import.meta.env.DEV) console.log('LAST WS', ws);
 
     return (
       <BasicTable
@@ -94,7 +95,7 @@ function App() {
             <Stack direction={"horizontal"} gap={1}>
               <b>{t('Sheet')}: </b>
               <select value={curWs} onChange={e => setCurWs(e.target.value)}>
-                <option value={"none"} disabled>*{t('Select sheet')}</option>
+                <option value={"none"}>*{t('Select sheet')}</option>
                 {wsList.map(ws => (
                   <option key={ws} value={JSON.stringify([ws[0], ws[2]])}>{ws[1]}</option>
                 ))}
@@ -102,6 +103,7 @@ function App() {
               {wbs && wbs.length > 0 && (<WbSheetsMap wbs={wbs}/>)}
             </Stack>
             <Stack direction="horizontal" gap={2}>
+              {import.meta.env.DEV && <MemoryUsage/>}
               <Dropdown>
                 <Dropdown.Toggle variant="info" id="dropdown-basic" size={"sm"}>
                   <i className="bi bi-translate"></i>

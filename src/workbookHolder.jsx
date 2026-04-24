@@ -12,7 +12,9 @@ export class workbookHolder{
   }
   static async create(file) {
     const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(await file.arrayBuffer());
+    await wb.xlsx.load(await file.arrayBuffer(), {
+      ignoreNodes: [],
+    });
     return new workbookHolder(wb, file);
   }
   /**
