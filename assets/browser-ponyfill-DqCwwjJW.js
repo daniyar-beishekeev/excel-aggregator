@@ -1,4 +1,4 @@
-import { c as commonjsGlobal, g as getDefaultExportFromCjs } from "./index-CbdHzlJk.js";
+import { c as commonjsGlobal, g as getDefaultExportFromCjs } from "./index-Q-ukyOh5.js";
 function _mergeNamespaces(n, m) {
   for (var i = 0; i < m.length; i++) {
     const e = m[i];
@@ -585,4 +585,4 @@ const browserPonyfill$1 = /* @__PURE__ */ _mergeNamespaces({
 export {
   browserPonyfill$1 as b
 };
-//# sourceMappingURL=browser-ponyfill-BdiEJx-o.js.map
+//# sourceMappingURL=browser-ponyfill-DqCwwjJW.js.map
