@@ -155,14 +155,9 @@ export class workbookHolder{
     </CellTag>
   }
   parseStyle (style, style2, cell, parts = {alignment: true, border: true, font: true, fill: true}) {
-    if (parts.alignment) {
-      this.parseAlignment(style2, cell.alignment);
-      style.textAlign = style2.textAlign;
-      style.justifyContent = style2.justifyContent;
-      style.alignItems = style2.alignItems;
-    }
+    if (parts.alignment) this.parseAlignment(style2, cell.alignment);
     if (parts.border) this.parseBorder(style, cell);
-    if (cell.font && parts.font) this.parseFont(style2, cell.font);
+    if (parts.font) this.parseFont(style2, cell.font ?? {});
     if (cell.fill && parts.fill) this.parseFill(style, cell.fill);
   }
   parseAlignment (style, alignment) {

@@ -5,6 +5,8 @@ html, body, #root {
 .excel{
     border-collapse: collapse;
     font-size: 14px;
+    table-layout: auto;
+    width: max-content;
 }
 
 .excel thead {
@@ -34,12 +36,12 @@ html, body, #root {
 }
 
 .excel td{
-    padding: 0;
     box-sizing: border-box;
     position: relative;
     white-space: pre;
+    padding: 0 0 0 3px;
 }
-.excel .td .cell-container{
+.excel td .cell-container{
     display: flex;
     position: relative;
 }

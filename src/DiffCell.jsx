@@ -66,7 +66,7 @@ const frequencyList = (arr) => {
   return Array.from(map);
 }
 
-export function diffCell({h, w, t, cell, wbHolder, wss, cellParams, style2}) {
+export function diffCell({containerStyle, h, w, t, cell, wbHolder, wss, cellParams, style2}) {
   cellParams = new Map(Object.entries(cellParams));
   const tags = [];
   const valueMode = cellParams.get('valueMode');
@@ -91,12 +91,11 @@ export function diffCell({h, w, t, cell, wbHolder, wss, cellParams, style2}) {
   };
   const getRawValue = wbHolder.getRawValue.bind(wbHolder);
   const cellSize = wbHolder.cellSize(cell);
+  containerStyle.minWidth = w;
+  containerStyle.minHeight = h;
   if (!cellParams.get('stretchCell')) {
-    style2.width = w;
-    style2.height = h;
-  } else {
-    style2.minWidth = w;
-    style2.minHeight = h;
+    style2.maxWidth = w;
+    style2.maxHeight = h;
   }
   let value = <div className={'cell-content'} style={style2}>{getValue(cell)}</div>
 
@@ -108,12 +107,22 @@ export function diffCell({h, w, t, cell, wbHolder, wss, cellParams, style2}) {
   }
 
   const numberAggregation = cellParams.get('numberAggregation');
-  const rawVals = wss.map(curWs => curWs.getCell(cell.address)).concat(cell).map(getRawValue);
+  let rawVals = wss.map(curWs => curWs.getCell(cell.address)).concat(cell).map(getRawValue);
   let aggregationEngine = null;
   if (numberAggregation !== 'none') {
+    const numberConverter = v => {
+      if (typeof v !== "string") return v;
+      const cleaned = v.replace(/\s+/g, "");
+      return /^\d+$/.test(cleaned) ? Number(cleaned) : v;
+    }
+    const rawVals2 = rawVals.map(_ => _);
     const resolver = getFormulaResolver(numberAggregation);
-    if (resolver && rawVals.every(isNumberOrNull)) {
-      value = <div className={'cell-content'} style={style2}>{resolver(rawVals)}</div>
+    if (resolver && rawVals.every((e, idx) => {
+      e = numberConverter(e);
+      rawVals2[idx] = e;
+      return isNumberOrNull(e)
+    })) {
+      value = <div className={'cell-content'} style={style2}>{resolver(rawVals2)}</div>
       aggregationEngine = `${t('Number')}-${t(numberAggregation)}`;
     }
   }
@@ -144,6 +153,7 @@ export function diffCell({h, w, t, cell, wbHolder, wss, cellParams, style2}) {
       const freqList = frequencyList(rawVals);
       if (freqList.length !== 1) {
         aggregationEngine = 'frequency';
+        style2.whiteSpace = '';
         value = <>
           {"{"}
           {freqList.map((v, idx) => (
