@@ -1,7 +1,5 @@
-import {BasicCell} from "./BasicCell.jsx";
 import {CellTag} from "./CellTag.jsx";
 import {format} from 'ssf';
-import {useTranslation} from "react-i18next";
 
 const bgColors =  [
   "lightgreen",
@@ -68,11 +66,9 @@ const frequencyList = (arr) => {
   return Array.from(map);
 }
 
-export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
-  const {t} = useTranslation();
+export function diffCell({h, w, t, cell, wbHolder, wss, cellParams, style2}) {
   cellParams = new Map(Object.entries(cellParams));
   const tags = [];
-  const customProps = {};
   const valueMode = cellParams.get('valueMode');
   const nullHandling = cellParams.get('nullHandling');
   const customNullValue = cellParams.get('customNullValue');
@@ -95,7 +91,14 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
   };
   const getRawValue = wbHolder.getRawValue.bind(wbHolder);
   const cellSize = wbHolder.cellSize(cell);
-  let value = getValue(cell);
+  if (!cellParams.get('stretchCell')) {
+    style2.width = w;
+    style2.height = h;
+  } else {
+    style2.minWidth = w;
+    style2.minHeight = h;
+  }
+  let value = <div className={'cell-content'} style={style2}>{getValue(cell)}</div>
 
   if (wss.some(curWs => {
     const otherSize = wbHolder.cellSize(curWs.getCell(cell.address));
@@ -110,7 +113,7 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
   if (numberAggregation !== 'none') {
     const resolver = getFormulaResolver(numberAggregation);
     if (resolver && rawVals.every(isNumberOrNull)) {
-      value = resolver(rawVals);
+      value = <div className={'cell-content'} style={style2}>{resolver(rawVals)}</div>
       aggregationEngine = `${t('Number')}-${t(numberAggregation)}`;
     }
   }
@@ -118,20 +121,19 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
   if (!aggregationEngine && aggregationMode !== 'none') {
     if (aggregationMode === 'diff' && rawVals.some(v => v !== rawVals[0])) {
       aggregationEngine = 'diff';
-      customProps.widthCoef = wss.length + 1;
       if (cellParams.get('markDifferences'))
         tags.push(<CellTag color={"purple"}>
           {t('Differences found')}
         </CellTag>)
       value = <>
-        <div style={{background: backgroundColor()}}>
+        <div className={'cell-content'} style={{...style2, background: backgroundColor()}}>
           {value}
         </div>
         {wss.map((curWs, idx) => {
           return (
             <>
               <GroupDelimiter>↣</GroupDelimiter>
-              <div style={{background: backgroundColor(idx + 1)}}>
+              <div className={'cell-content'} style={{...style2, background: backgroundColor(idx + 1)}}>
                 {getValue(curWs.getCell(cell.address)) ?? ' '}
               </div>
             </>
@@ -142,13 +144,12 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
       const freqList = frequencyList(rawVals);
       if (freqList.length !== 1) {
         aggregationEngine = 'frequency';
-        customProps.widthCoef = freqList.length + 1;
         value = <>
           {"{"}
           {freqList.map((v, idx) => (
             <>
               {idx !== 0 && <GroupDelimiter>,</GroupDelimiter>}
-              <div style={{ background: backgroundColor(idx)}}>{v[0] ?? ''} → {v[1]}</div>
+              <div className={'cell-content'} style={{...style2, background: backgroundColor(idx)}}>{v[0] ?? ''} → {v[1]}</div>
             </>
           ))}
           {"}"}
@@ -158,7 +159,7 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
       const tmp = new Set(rawVals).size;
       if (tmp !== 1) {
         aggregationEngine = 'distinctCount';
-        value = <div style={{background: backgroundColor(tmp)}}>
+        value = <div className={'cell-content'} style={{...style2, background: backgroundColor(tmp)}}>
           *{tmp}
         </div>
       }
@@ -166,13 +167,12 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
       const st = [...new Set(rawVals)];
       if (st.length !== 1) {
         aggregationEngine = 'distinct';
-        customProps.widthCoef = st.length;
         value = <>
           {"{"}
           {st.map((v, idx) => (
             <>
               {idx !== 0 && <GroupDelimiter>,</GroupDelimiter>}
-              <div style={{ background: backgroundColor(idx) }}>{v}</div>
+              <div className={'cell-content'} style={{...style2, background: backgroundColor(idx) }}>{v}</div>
             </>
           ))}
           {"}"}
@@ -202,9 +202,5 @@ export function DiffCell({cell, wbHolder, wss, cellParams, props}) {
     if (comment) tags.push(comment)
   }
 
-  if (cellParams.get('stretchCell'))
-    customProps.containerPosition = 'inherit';
-  return <BasicCell cell={cell} wbHolder={wbHolder} props={{...props, ...customProps}} tags={tags}>
-    {value}
-  </BasicCell>
+  return {tags, children: value};
 }

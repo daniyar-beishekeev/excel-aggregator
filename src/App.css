@@ -39,21 +39,25 @@ html, body, #root {
     position: relative;
     white-space: pre;
 }
-.excel td .cell-content{
-    box-sizing: border-box;
-    padding-left: 3px;
-    overflow: visible;
+.excel .td .cell-container{
     display: flex;
     position: relative;
+}
+
+.excel td .cell-content{
+    box-sizing: border-box;
+    overflow: visible;
+    display: inline-flex;
+    vertical-align: top;
 }
 
 .cell-content:hover {
     z-index: 9;
 }
 
-.excel .selection:hover .cell-content{
+/*.excel .selection:hover .cell-content{
     background-color: rgba(211, 211, 211, 0.5) !important;
-}
+}*/
 
 button, select, input {
     margin: 0 2px;

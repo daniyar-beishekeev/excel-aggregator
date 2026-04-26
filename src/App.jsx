@@ -4,7 +4,8 @@ import ManageFiles from "./ManageFiles.jsx";
 import LoadingOverlay from "./LoadingOverlay.jsx";
 import {workbookHolder} from "./workbookHolder.jsx";
 import {BasicTable} from "./BasicTable.jsx";
-import {backgroundColor, DiffCell} from "./DiffCell.jsx";
+import {backgroundColor} from "./DiffCell.jsx";
+import {BasicCell} from "./BasicCell.jsx";
 import {Dropdown, Stack} from "react-bootstrap";
 import {CellEvaluatorParameters} from "./CellEvaluatorParameters.jsx";
 import {WbSheetsMap} from "./WbSheetsMap.jsx";
@@ -59,13 +60,12 @@ function App() {
   const [cellParams, setCellParams] = useState(null);
   const cellEvaluator = useCallback(
     (cell, props) => (
-      <DiffCell
+      <BasicCell
         cell={cell}
         wbHolder={wbs[0]}
         wss={wss}
         cellParams={cellParams}
-        props={props}
-      />
+        props={props}/>
     ),
     [wbs, wss, cellParams]
   );

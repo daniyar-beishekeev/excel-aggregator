@@ -13,7 +13,25 @@ export class workbookHolder{
   static async create(file) {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await file.arrayBuffer(), {
-      ignoreNodes: [],
+      ignoreNodes: [
+        'dimension',
+        'sheetViews',
+        'cols',
+        'autoFilter',
+        'rowBreaks',
+        'hyperlinks',
+        'pageMargins',
+        'dataValidations',
+        'pageSetup',
+        'headerFooter',
+        'printOptions',
+        'picture',
+        'drawing',
+        'sheetProtection',
+        'tableParts',
+        'conditionalFormatting',
+        'extLst'
+      ].filter(_ => false)
     });
     return new workbookHolder(wb, file);
   }
@@ -137,10 +155,15 @@ export class workbookHolder{
     </CellTag>
   }
   parseStyle (style, style2, cell, parts = {alignment: true, border: true, font: true, fill: true}) {
-    if (parts.alignment) this.parseAlignment(style2, cell.alignment);
+    if (parts.alignment) {
+      this.parseAlignment(style2, cell.alignment);
+      style.textAlign = style2.textAlign;
+      style.justifyContent = style2.justifyContent;
+      style.alignItems = style2.alignItems;
+    }
     if (parts.border) this.parseBorder(style, cell);
     if (cell.font && parts.font) this.parseFont(style2, cell.font);
-    if (cell.fill && parts.fill) this.parseFill(style2, cell.fill);
+    if (cell.fill && parts.fill) this.parseFill(style, cell.fill);
   }
   parseAlignment (style, alignment) {
     const al = alignment ?? {};
