@@ -142,9 +142,7 @@ export function diffCell({containerStyle, h, w, t, cell, wbHolder, wss, cellPara
           return (
             <>
               <GroupDelimiter>↣</GroupDelimiter>
-              <div className={'cell-content'} style={{...style2, background: backgroundColor(idx + 1)}}>
-                {getValue(curWs.getCell(cell.address)) ?? ' '}
-              </div>
+              <div className={'cell-content'} style={{...style2, background: backgroundColor(idx + 1)}}>{getValue(curWs.getCell(cell.address)) ?? ' '}</div>
             </>
           )
         })}

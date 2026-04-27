@@ -122,7 +122,7 @@ export default function ManageFiles({ applyChanges }) {
           <Modal.Title>{t('Manage Files')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Stack gap={2}>
+          <Stack style={{maxHeight: '70vh', overflowY: 'auto', overflowX: 'hidden'}} gap={2}>
             <Stack direction="horizontal" gap={1}>
               <input type="file" style={{"display": "none"}} ref={fileAddInput} multiple onChange={handleFileAdd} />
               <Button variant="info" className={"btn-sm"} onClick={() => fileAddInput.current.click()}>➕</Button>
