@@ -25,7 +25,7 @@ function App() {
         })
       )
       files.forEach(file => file.id = crypto.randomUUID());
-      const mode = 'exceljs';
+      const mode = 'sheetjs';
       if (mode === 'sheetjs') {
         Promise.all(
           files.map(async (file) => {

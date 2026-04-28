@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import pkg from './package.json'
 import obfuscator from 'vite-plugin-javascript-obfuscator'
+import checker from 'vite-plugin-checker'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -10,6 +11,9 @@ export default defineConfig({
     obfuscator({
       compact: true,
       controlFlowFlattening: true,
+    }),
+    checker({
+      typescript: true
     })
   ],
   base: pkg.name,
