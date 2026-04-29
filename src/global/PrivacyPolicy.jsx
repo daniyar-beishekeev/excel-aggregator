@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {Button, Modal} from "react-bootstrap";
-import persistentState from "./persistentState.js";
+import {useLocalStorage} from "../utils/persistentState.ts";
 import {useTranslation} from "react-i18next";
 
 const policy = `
@@ -41,7 +41,7 @@ async function hashPolicy(policyText) {
 export function PrivacyPolicy() {
   const {t} = useTranslation();
   const [hash, setHash] = useState(null);
-  const [acceptedHash, setAcceptedHash] = persistentState("privacyPolicy", '');
+  const [acceptedHash, setAcceptedHash] = useLocalStorage("privacyPolicy", '');
   hashPolicy(policy).then(setHash);
   return hash && hash !== acceptedHash &&(
     <>

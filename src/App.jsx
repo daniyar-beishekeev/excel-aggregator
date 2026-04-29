@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
 import "./App.css"
-import ManageFiles from "./ManageFiles.jsx";
+import ManageFiles from "./ManageFiles/ManageFiles.tsx";
 import LoadingOverlay from "./LoadingOverlay.jsx";
 import {workbookHolder} from "./workbookHolder.jsx";
 import {BasicTable} from "./BasicTable.jsx";
@@ -9,16 +9,16 @@ import {BasicCell} from "./BasicCell.jsx";
 import {Dropdown, Stack} from "react-bootstrap";
 import {CellEvaluatorParameters} from "./CellEvaluatorParameters.jsx";
 import {WbSheetsMap} from "./WbSheetsMap.jsx";
-import {PrivacyPolicy} from "./PrivacyPolicy.jsx";
+import {PrivacyPolicy} from "./global/PrivacyPolicy.jsx";
 import {Workbook} from "exceljs";
 import {useTranslation} from "react-i18next";
-import i18n from './i18n';
-import persistentState from "./persistentState.js";
-import {MemoryUsage} from "./MemoryUsage.jsx";
+import i18n from './global/i18n.js';
+import {MemoryUsage} from "./utils/MemoryUsage.jsx";
+import {useGlobal} from "./global/GlobalContext.tsx";
 
 function App() {
   const {t} = useTranslation();
-  const [lang, setLang] = persistentState("lang", "ru");
+  const {lang, setLang} = useGlobal();
   useEffect(() => {
     i18n.changeLanguage(lang);
   }, [lang]);
@@ -29,6 +29,7 @@ function App() {
   const [loading, setLoading] = useState(false);
 
   const applyFiles = useCallback(async (files) => {
+    console.log(files);
     setLoading(true);
     setCurWs("none");
     if (files.length === 0) {

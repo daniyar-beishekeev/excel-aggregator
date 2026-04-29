@@ -2,7 +2,7 @@ import {StrictMode, useEffect, useState} from 'react'
 import { createRoot } from 'react-dom/client'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
-import {MemoryUsage} from "../MemoryUsage.jsx";
+import {MemoryUsage} from "../utils/MemoryUsage.jsx";
 import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
 

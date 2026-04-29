@@ -20,6 +20,7 @@
     "@formio/react": "^6.2.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
+    "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
     "gh-pages": "^6.3.0",
     "i18n": "^0.15.3",

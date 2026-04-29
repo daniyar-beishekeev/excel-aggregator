@@ -1,0 +1,18 @@
+.manage-files-modal {
+    max-width: 90vw !important;
+    width: 90vw;
+}
+
+.manage-files-modal .modal-content {
+    max-height: 90vh;
+}
+
+.manage-files-modal .modal-body {
+    overflow: auto;
+    padding-top: 0;
+    margin-top: var(--bs-modal-padding);
+}
+
+.manage-files-modal table th {
+    text-wrap-mode: nowrap;
+}

@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
-import {applyTint, extractThemeColors, indexedColors} from "./indexedColors.js";
-import {isPlainObject} from "./utils.js";
+import {applyTint, extractThemeColors, indexedColors} from "./utils/indexedColors.js";
+import {isPlainObject} from "./utils/utils.js";
 import {CellTag} from "./CellTag.jsx";
 
 export class workbookHolder{
