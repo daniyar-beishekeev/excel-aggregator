@@ -1,4 +1,4 @@
-import React, {type ChangeEvent, useCallback, useRef, useState} from "react";
+import React, {type ChangeEvent, useCallback, useEffect, useRef, useState} from "react";
 import {Button, Modal} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 import pLimit from "p-limit";
@@ -9,14 +9,15 @@ import {ManageFilesTable} from "./ManageFilesTable.tsx";
 
 let file_descriptor = 1;
 const limit = pLimit(32);
+let sampleFilesAdd = true;
 
-export default function ManageFiles({ applyChanges }: {applyChanges: (a: FileHolder[]) => void}) {
+export function ManageFiles({ applyChanges }: {applyChanges: (a: FileHolder[]) => void}) {
   const {t} = useTranslation();
   const [files, setFiles] = useState<FileHolder[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const applyFiles: () => void = useCallback(() => {
     setOpen(false);
-    applyChanges(files);
+    applyChanges(files.filter(file => file.status === 'ready'));
   }, [applyChanges, files]);
 
   const processFile = async (file: FileHolder): Promise<void> => {
@@ -42,12 +43,7 @@ export default function ManageFiles({ applyChanges }: {applyChanges: (a: FileHol
       setFiles(prev => prev.map((f: FileHolder) => f.id == file.id ? {...f, ...extraProps} : f));
     }
   }
-
-  const fileAddInput = useRef<HTMLInputElement>(null);
-  const handleFileAdd = (e: ChangeEvent<HTMLInputElement>) => {
-    const selected = Array.from(e.target.files || []) as File[];
-    e.target.value = "";
-    if (!selected.length) return;
+  const fileAdd = (selected: File[]): void => {
     const new_files = selected.map(file => {
       const fileHolder: FileHolder = {
         id: crypto.randomUUID(),
@@ -61,7 +57,34 @@ export default function ManageFiles({ applyChanges }: {applyChanges: (a: FileHol
       return fileHolder;
     });
     setFiles(prev => [...prev, ...new_files]);
+  }
+
+  const fileAddInput = useRef<HTMLInputElement>(null);
+  const handleFileAdd = (e: ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []) as File[];
+    e.target.value = "";
+    if (!selected.length) return;
+    fileAdd(selected);
   };
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (!sampleFilesAdd) return;
+    sampleFilesAdd = false;
+    Promise.all(
+        Object.keys(import.meta.glob('/public/*'))
+            .map(_ => import.meta.env.BASE_URL + _.slice(7))
+            .filter(_ => _.endsWith('.xlsx'))
+            .map(async (url, index) => {
+          const response = await fetch(url);
+          const blob = await response.blob();
+
+          const fileName = url.split('/').pop() || `file-${index}`;
+
+          return new File([blob], fileName, { type: blob.type });
+        })
+    ).then(fileAdd);
+  }, []);
 
   return (
     <>

@@ -3,10 +3,11 @@ import * as locales from 'date-fns/locale';
 
 import type {FileHolder} from "./FileHolder.ts";
 import {Button, ButtonGroup, Col, Dropdown, DropdownButton, Form, Row, Stack} from "react-bootstrap";
-import React, {useState, useMemo} from "react";
+import React, {useState, useMemo, useEffect} from "react";
 import {useTranslation} from "react-i18next";
 import {useLocalStorage} from "../utils/persistentState.ts";
 import {useGlobal} from "../global/GlobalContext.tsx";
+import {debounce} from "lodash";
 
 const color_scheme: Record<string, string> = {
     processing: '#3182ce',
@@ -144,7 +145,7 @@ type ManageFilesProps = {children?: any, files: FileHolder[], setFiles: React.Di
 export function ManageFilesTable({children, files, setFiles}: ManageFilesProps) {
     const {t} = useTranslation();
     const {lang} = useGlobal();
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState<string>('');
     const [sortKey, setSortKey] = useState<string>(defaultSorter);
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [visibleCols, setVisibleCols] = useLocalStorage<Record<string, boolean>>(
@@ -186,16 +187,29 @@ export function ManageFilesTable({children, files, setFiles}: ManageFilesProps) 
             return next;
         });
     };
-
+    const [filterQuery, setFilterQuery] = useState<string>('');
+    const debouncedSetFilterQuery = useMemo(
+      () =>
+        debounce((value: string) => {
+            setFilterQuery(value);
+        }, 500),
+      []
+    );
+    useEffect(() => {
+        debouncedSetFilterQuery(query);
+        return () => {
+            debouncedSetFilterQuery.cancel();
+        };
+    }, [query, debouncedSetFilterQuery]);
     const filtered = useMemo(() => {
-        const q = query.toLowerCase().trim();
+        const q = filterQuery.toLowerCase().trim();
         if (!q || q === '') return files;
         return files.filter(f =>
             columns.some(c =>
                 visibleCols[c.column] && String((c.raw ?? c.format)({row: f, lang}) ?? '').toLowerCase().includes(q)
             )
         );
-    }, [files, query, visibleCols]);
+    }, [files, filterQuery, visibleCols]);
 
     const sorted = useMemo(() => {
         if (sortKey === defaultSorter) return filtered;

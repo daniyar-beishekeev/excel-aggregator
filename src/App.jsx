@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
 import "./App.css"
-import ManageFiles from "./ManageFiles/ManageFiles.tsx";
+import {ManageFiles} from "./ManageFiles/ManageFiles.tsx";
 import LoadingOverlay from "./LoadingOverlay.jsx";
 import {workbookHolder} from "./workbookHolder.jsx";
 import {BasicTable} from "./BasicTable.jsx";
@@ -15,6 +15,7 @@ import {useTranslation} from "react-i18next";
 import i18n from './global/i18n.js';
 import {MemoryUsage} from "./utils/MemoryUsage.jsx";
 import {useGlobal} from "./global/GlobalContext.tsx";
+import {SelectSheets} from "./SelectSheets/SelectSheets.tsx";
 
 function App() {
   const {t} = useTranslation();
@@ -28,24 +29,31 @@ function App() {
   const [curWs, setCurWs] = useState("none");
   const [loading, setLoading] = useState(false);
 
-  const applyFiles = useCallback(async (files) => {
+  // const applyFiles = useCallback(async (files) => {
+  //   setLoading(true);
+  //   setCurWs("none");
+  //   if (files.length === 0) {
+  //     setWsList([]);
+  //     setLoading(false);
+  //     setWbs([]);
+  //     return;
+  //   }
+  //
+  //   const cache = Object.fromEntries(wbs.map(wb => [wb.id, wb]));
+  //   const newWbs = await Promise.all(files.map(file => (file.id in cache) ? Promise.resolve(cache[file.id]) : workbookHolder.create(file)));
+  //   setWbs(newWbs);
+  //   const wbHandler = newWbs[0];
+  //   setWsList(wbHandler.wb.worksheets.map(ws => [wbHandler.id, ws.name, ws.id]));
+  //   setLoading(false);
+  // }, [wbs]);
+  const [files, setFiles] = useState([]);
+  const applyFiles = (files) => {
     console.log(files);
-    setLoading(true);
-    setCurWs("none");
-    if (files.length === 0) {
-      setWsList([]);
-      setLoading(false);
-      setWbs([]);
-      return;
-    }
-
-    const cache = Object.fromEntries(wbs.map(wb => [wb.id, wb]));
-    const newWbs = await Promise.all(files.map(file => (file.id in cache) ? Promise.resolve(cache[file.id]) : workbookHolder.create(file)));
-    setWbs(newWbs);
-    const wbHandler = newWbs[0];
-    setWsList(wbHandler.wb.worksheets.map(ws => [wbHandler.id, ws.name, ws.id]));
-    setLoading(false);
-  }, [wbs]);
+    setFiles(files);
+  }
+  const applySheets = (sheets) => {
+    console.log(sheets);
+  }
 
   const ws = useMemo(() => {
     if (!wbs?.length || !curWs || curWs === "none") return null;
@@ -94,6 +102,7 @@ function App() {
         <Stack gap={1}>
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <Stack direction={"horizontal"} gap={1}>
+              <SelectSheets files={files} applySheets={applySheets}/>
               <b>{t('Sheet')}: </b>
               <select value={curWs} onChange={e => setCurWs(e.target.value)}>
                 <option value={"none"}>*{t('Select sheet')}</option>

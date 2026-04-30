@@ -16,7 +16,7 @@ export default defineConfig({
       typescript: true
     })
   ],
-  base: pkg.name,
+  base: '/' + pkg.name,
   build: {
     sourcemap: true,
     minify: false,
