@@ -11,6 +11,8 @@ import {parseFill} from "./fill.ts";
 import {parseFont} from "./font.ts";
 import {parseBorder} from "./border.ts";
 
+import './general.css'
+
 export interface CellStyle {
   tdStyle: CSSProperties;
   containerStyle: CSSProperties;
@@ -23,6 +25,7 @@ export interface CellTemplate extends CellStyle{
   colSpan: number;
   w: number;
   h: number;
+  classList?: string | undefined;
 
   comment?: JSX.Element | null | undefined;
   htmlContent: any;
@@ -52,9 +55,59 @@ export class workbookHolder{
     const widthPref: number[] = Array.from({length: totalCol + 1}, () => 0);
     for (let rowNum = 1; rowNum <= totalRow; rowNum++) heightPref[rowNum] = heightPref[rowNum - 1]! + this.getHeight(ws.getRow(rowNum));
     for (let colNum = 1; colNum <= totalCol; colNum++) widthPref[colNum] = widthPref[colNum - 1]! + this.getWidth(ws.getColumn(colNum));
+
+    //ADD ROW INDEX
+    {
+      const cells: CellTemplate[] = [];
+      {
+        //ADD GLOBAL INDEX
+        cells.push({
+          address: '**',
+          colSpan: 1,
+          rowSpan: 1,
+          w: 0, h: 0,
+          tdStyle: {},
+          contentStyle: {},
+          containerStyle: {},
+          classList: 'columnHeader rowHeader',
+          htmlContent: null
+        })
+        for (let colNum = 1; colNum <= totalCol; colNum++) {
+          const col = ws.getColumn(colNum);
+          //ADD COLUMN INDEX
+          cells.push({
+            address: col.letter + '*',
+            colSpan: 1,
+            rowSpan: 1,
+            w: 0, h: 0,
+            tdStyle: {},
+            contentStyle: {},
+            containerStyle: {},
+            classList: 'rowHeader',
+            htmlContent: col.letter
+          })
+        }
+      }
+      rows.push(cells);
+    }
+
     for (let rowNum = 1; rowNum <= totalRow; rowNum++) {
       const row: ExcelJS.Row = ws.getRow(rowNum);
       const cells: CellTemplate[] = [];
+      {
+        //ADD COLUMN INDEX
+        cells.push({
+          address: '*' + String(rowNum),
+          colSpan: 1,
+          rowSpan: 1,
+          w: 0, h: 0,
+          tdStyle: {},
+          contentStyle: {},
+          containerStyle: {},
+          classList: 'columnHeader',
+          htmlContent: String(rowNum)
+        })
+      }
       for (let colNum = 1; colNum <= totalCol; colNum++) {
         const cell = row.getCell(colNum);
         const range = this.cellRange(cell);

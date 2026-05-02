@@ -1,0 +1,77 @@
+.excel{
+    border-collapse: collapse;
+    font-size: 14px;
+    table-layout: auto;
+    width: max-content;
+    border-spacing: 0;
+}
+
+.excel td{
+    position: relative;
+    padding: 0;
+    border-spacing: 0;
+    box-sizing: border-box;
+}
+.excel td .cell-container{
+    display: flex;
+    position: relative;
+    overflow: hidden;
+    min-width: 100%;
+    min-height: 100%;
+}
+
+.excel td .cell-content{
+    overflow: visible;
+    display: inline-flex;
+    vertical-align: top;
+    white-space: pre;
+}
+
+.excel .cell-container:hover {
+    z-index: 9;
+    overflow: visible;
+}
+
+.excel tr:hover td:not(.columnHeader):not(.rowHeader) {
+    background-color: rgba(211, 211, 211, 0.5) !important;
+}
+
+/* Styles for both */
+.excel td.columnHeader,
+.excel td.rowHeader {
+    border: 1px solid black;
+    background: white !important;
+    z-index: 33;
+    position: sticky;
+    overflow: visible;
+}
+
+.excel .columnHeader .cell-container,
+.excel .rowHeader .cell-container {
+    overflow: visible;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
+    padding: 0 3px;
+}
+
+.excel .columnHeader .cell-content,
+.excel .rowHeader .cell-content {
+    align-items: center;
+}
+
+/* Individual styles */
+.excel td.rowHeader {
+    top: 0;
+}
+
+.excel td.columnHeader {
+    left: 0;
+}
+
+.excel td.rowHeader .cell-content {
+    position: sticky;
+    left: 35px;
+    z-index: 35;
+    background: white;
+}
