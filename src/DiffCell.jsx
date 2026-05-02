@@ -1,4 +1,4 @@
-import {CellTag} from "./CellTag.jsx";
+import {CellTag} from "./sheetStyle/CellTag.tsx";
 import {format} from 'ssf';
 
 const bgColors =  [

@@ -13,6 +13,7 @@ export interface EntityType{
   children: {
     id: string;
     group: string;
+    groupId: string;
     name: string;
   }[]
 }
@@ -22,7 +23,6 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
   const [open, setOpen] = useState<boolean>(false);
   const applySheetsInternal = () => {
     setOpen(false);
-    applySheets(right);
   }
 
   const [query, setQuery] = useState<string>('');
@@ -49,6 +49,7 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
       children: file.sheetNames.map(sheet => ({
         id: crypto.randomUUID(),
         group: file.file.name,
+        groupId: file.id,
         name: sheet,
       })).filter(item => item.name.toLowerCase().includes(q)),
     })).filter(group => group.children.length > 0);
@@ -56,6 +57,14 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
   }, [files, filterQuery]);
 
   const [right, setRight] = useState<EntityType['children']>([]);
+  useEffect(() => {
+    const fileIds = new Set(files.map(file => file.id));
+    setRight(old => old.filter(sheet => fileIds.has(sheet.groupId)));
+  }, [files]);
+  useEffect(() => {
+    if (!open)
+      applySheets(right);
+  }, [files, open, applySheets]);
   return (
   <>
     <Button type="button" className={"btn btn-info btn-sm"} onClick={() => setOpen(true)}>{t('manage_sheets')}</Button>

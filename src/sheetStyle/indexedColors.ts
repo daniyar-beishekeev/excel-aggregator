@@ -1,4 +1,6 @@
-export const indexedColors = [
+export type color = string | undefined | null;
+
+export const indexedColors: color[] = [
   "#000000", //0
   "#FFFFFF", //1
   "#FF0000", //2
@@ -65,7 +67,7 @@ export const indexedColors = [
   "#333333"  //63
 ]
 
-const readThemeColor = (scheme, tag) => {
+const readThemeColor = (scheme: Element, tag: string): color => {
   const node = scheme.getElementsByTagName(`a:${tag}`)[0];
   if (!node) return null;
   const srgb = node.getElementsByTagName("a:srgbClr")[0];
@@ -76,7 +78,7 @@ const readThemeColor = (scheme, tag) => {
   return null;
 };
 
-const themeTags = [
+const themeTags: string[] = [
   "dk1",
   "lt1",
   "dk2",
@@ -89,7 +91,7 @@ const themeTags = [
   "accent6"
 ];
 
-export const extractThemeColors = (themes) => {
+export const extractThemeColors = (themes: any): color[] => {
   if (!themes?.theme1) return [];
 
   const parser = new DOMParser();
@@ -101,12 +103,12 @@ export const extractThemeColors = (themes) => {
   return themeTags.map(tag => readThemeColor(scheme, tag));
 };
 
-const tintChannel = (c, tint) => {
+const tintChannel = (c: number, tint: number): number => {
   if (tint < 0) return Math.round(c * (1 + tint));
   return Math.round(c + (255 - c) * tint);
 };
 
-export const applyTint = (hex, tint = 0) => {
+export const applyTint = (hex: color, tint: number = 0) => {
   if (!hex) return "#000";
   const r = parseInt(hex.slice(0, 2), 16);
   const g = parseInt(hex.slice(2, 4), 16);

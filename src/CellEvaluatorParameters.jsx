@@ -4,7 +4,7 @@ import {Form} from "@formio/react";
 import parameterForm from "./parameterForm.json";
 import {useLocalStorage} from "./utils/persistentState.ts";
 import {useTranslation} from "react-i18next";
-import i18n from "./global/i18n.js";
+import i18n from "./global/i18n.ts";
 
 const buildFormioI18n = () => {
   const lang = i18n.language;

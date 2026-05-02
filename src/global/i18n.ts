@@ -20,4 +20,9 @@ i18n
     },
   });
 
+export const langList: Record<string, string> = {
+  'en': 'English',
+  'ru': 'Русский',
+}
+
 export default i18n;

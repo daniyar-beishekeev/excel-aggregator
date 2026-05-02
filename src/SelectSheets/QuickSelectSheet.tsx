@@ -13,6 +13,7 @@ export function QuickSelectSheet({files, setRight}: {files: FileHolder[], setRig
       const res: EntityType['children'][number] = {
         id: crypto.randomUUID(),
         group: file.file.name,
+        groupId: file.id,
         name: sheet
       }
       return res;

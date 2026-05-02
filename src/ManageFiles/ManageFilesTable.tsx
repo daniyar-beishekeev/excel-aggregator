@@ -1,6 +1,3 @@
-import { format } from 'date-fns';
-import * as locales from 'date-fns/locale';
-
 import type {FileHolder} from "./FileHolder.ts";
 import {Button, ButtonGroup, Col, Dropdown, DropdownButton, Form, Row, Stack} from "react-bootstrap";
 import React, {useState, useMemo, useEffect} from "react";
@@ -8,6 +5,7 @@ import {useTranslation} from "react-i18next";
 import {useLocalStorage} from "../utils/persistentState.ts";
 import {useGlobal} from "../global/GlobalContext.tsx";
 import {debounce} from "lodash";
+import {formatDate} from "../global/formatDate.ts"
 
 const color_scheme: Record<string, string> = {
     processing: '#3182ce',
@@ -15,11 +13,7 @@ const color_scheme: Record<string, string> = {
     error: '#e53e3e',
 };
 
-const getDateLocale = (lang: string) => {
-    return lang in locales ? locales[lang as keyof typeof locales] : locales.enUS;
-};
 const formatKB = (size?: number): string => size ? `${(size / 1024).toFixed(2)} KB` : '';
-const formatDate = ({d, lang}: {d?: Date | undefined, lang?: string | undefined}): string => d ? format(new Date(d), 'PPpp', {locale: getDateLocale(lang ?? '')}) : '';
 
 interface rowResolver {
     row: FileHolder,
