@@ -14,21 +14,23 @@ import {parseBorder} from "./border.ts";
 import './general.css'
 
 export interface CellStyle {
-  tdStyle: CSSProperties;
-  containerStyle: CSSProperties;
-  contentStyle: CSSProperties;
+  readonly tdStyle: CSSProperties;
+  readonly containerStyle: CSSProperties;
+  readonly contentStyle: CSSProperties;
 }
 
 export interface CellTemplate extends CellStyle{
-  address: string;
-  rowSpan: number;
-  colSpan: number;
+  readonly address: string;
+  readonly r: number;
+  readonly c: number;
+  readonly rowSpan: number;
+  readonly colSpan: number;
   w: number;
   h: number;
   classList?: string | undefined;
 
-  comment?: JSX.Element | null | undefined;
-  htmlContent: any;
+  readonly comment?: JSX.Element | null | undefined;
+  readonly htmlContent: any;
 }
 
 export class workbookHolder{
@@ -49,7 +51,7 @@ export class workbookHolder{
     const ws = this.wb.getWorksheet(sheetName);
     const rows: CellTemplate[][] = [];
     if (!ws) return rows;
-    const {totalRow, totalCol} = this.worksheetSize(ws);
+    const {totalRow, totalCol} = this._worksheetSize(ws);
 
     const heightPref: number[] = Array.from({length: totalRow + 1}, () => 0);
     const widthPref: number[] = Array.from({length: totalCol + 1}, () => 0);
@@ -62,6 +64,7 @@ export class workbookHolder{
       {
         //ADD GLOBAL INDEX
         cells.push({
+          r: -1, c: -1,
           address: '**',
           colSpan: 1,
           rowSpan: 1,
@@ -76,6 +79,7 @@ export class workbookHolder{
           const col = ws.getColumn(colNum);
           //ADD COLUMN INDEX
           cells.push({
+            r: -1, c: colNum,
             address: col.letter + '*',
             colSpan: 1,
             rowSpan: 1,
@@ -97,6 +101,7 @@ export class workbookHolder{
       {
         //ADD COLUMN INDEX
         cells.push({
+          r: rowNum, c: -1,
           address: '*' + String(rowNum),
           colSpan: 1,
           rowSpan: 1,
@@ -118,9 +123,12 @@ export class workbookHolder{
         const st: CellStyle = this.parseStyle(cell);
         const w: number = widthPref[range.right]! - widthPref[range.left - 1]!;
         const h: number = heightPref[range.bottom]! - heightPref[range.top - 1]!;
-        st.containerStyle.width = w;
+        st.containerStyle.minWidth = w;
+        st.contentStyle.maxWidth = w;
+
         st.containerStyle.height = h;
         cells.push({
+          r: rowNum, c: colNum,
           address: cell.address,
           colSpan: range.right - range.left + 1,
           rowSpan: range.bottom - range.top + 1,
@@ -146,7 +154,7 @@ export class workbookHolder{
   private getWidth (col: ExcelJS.Column): number {
     return Math.ceil(((col.width ?? col.worksheet.properties.defaultColWidth ?? 8.43) * 7 + 5));
   }
-  private worksheetSize (ws: ExcelJS.Worksheet): {totalRow: number, totalCol: number} {
+  private _worksheetSize (ws: ExcelJS.Worksheet): {totalRow: number, totalCol: number} {
     let totalRow: number = ws.rowCount, totalCol: number = ws.columnCount;
     while (ws.getRow(totalRow).actualCellCount === 0) totalRow--;
     while (ws.getColumn(totalCol).values.length === 0) totalCol--;
@@ -154,6 +162,11 @@ export class workbookHolder{
       totalCol,
       totalRow
     };
+  }
+  public worksheetSize (sheetName: string): {totalRow: number, totalCol: number} {
+    const ws = this.wb.getWorksheet(sheetName);
+    if (!ws) return {totalRow: 0, totalCol: 0};
+    return this._worksheetSize(ws);
   }
   public cellRange(cell: ExcelJS.Cell): ExcelJS.Location {
     if (cell.isMerged) {
@@ -203,11 +216,11 @@ export class workbookHolder{
         </>
       );
     }
-    let r = this.getRawValue(cell);
+    let r = workbookHolder.getRawValue(cell);
     if (r instanceof Date) r = formatDate({d: r});
     return r;
   }
-  private getRawValue (cell: ExcelJS.Cell) {
+  public static getRawValue (cell: ExcelJS.Cell) {
     const v = cell.value;
     //type CellValue =
     // 	| null | number | string | boolean | Date | undefined

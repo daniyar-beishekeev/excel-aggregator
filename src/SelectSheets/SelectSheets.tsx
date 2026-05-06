@@ -7,6 +7,9 @@ import {debounce} from "lodash";
 import './SelectSheets.css';
 import {QuickSelectSheet} from "./QuickSelectSheet.tsx";
 
+//@ts-expect-error
+import {backgroundColor} from "../DiffCell.jsx"
+
 export interface EntityType{
   id: string;
   name: string;
@@ -18,11 +21,22 @@ export interface EntityType{
   }[]
 }
 
+export const renderItem = (item: EntityType['children'][number], idx: number): React.ReactElement => {
+  return(
+    <div style={{backgroundColor: backgroundColor(idx)}} key={idx}>
+      <code className={"font-mono text-blue-700"}>{item.group}</code>
+      <br/>
+      <b>└ {item.name}</b>
+    </div>
+  );
+}
+
 export function SelectSheets({files, applySheets}: {files: FileHolder[], applySheets: (a: EntityType['children']) => void}) {
   const {t} = useTranslation();
   const [open, setOpen] = useState<boolean>(false);
   const applySheetsInternal = () => {
     setOpen(false);
+    applySheets(right);
   }
 
   const [query, setQuery] = useState<string>('');
@@ -58,13 +72,26 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
 
   const [right, setRight] = useState<EntityType['children']>([]);
   useEffect(() => {
+    if(import.meta.env.DEV) {
+      if (files.length > 0)
+        applySheets(files.map(file => {
+          const res: EntityType['children'][number] = {
+            id: crypto.randomUUID(),
+            group: file.file.name,
+            groupId: file.id,
+            name: 'Р.2',
+          };
+          return res;
+        }));
+    }
     const fileIds = new Set(files.map(file => file.id));
-    setRight(old => old.filter(sheet => fileIds.has(sheet.groupId)));
+    const res = right.filter(sheet => fileIds.has(sheet.groupId));
+    if (res.length !== right.length) {
+      if (!open)
+        applySheets(res);
+      setRight(res);
+    }
   }, [files]);
-  useEffect(() => {
-    if (!open)
-      applySheets(right);
-  }, [files, open, applySheets]);
   return (
   <>
     <Button type="button" className={"btn btn-info btn-sm"} onClick={() => setOpen(true)}>{t('manage_sheets')}</Button>
@@ -160,17 +187,13 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
                 minHeight: "95%"
               }}
             >
-              {right.map(item => (
+              {right.map((item, idx) => (
                 <div
                   key={item.id}
-                  className={'my-2 pt-0 p-2 bg-info-subtle d-flex justify-content-between align-items-center'}
-                  style={{cursor: "grab"}}
+                  className={'my-2 pt-0 p-2 d-flex justify-content-between align-items-center'}
+                  style={{cursor: "grab", backgroundColor: backgroundColor(idx)}}
                 >
-                  <div>
-                    <code className={"font-mono text-blue-700"}>{item.group}</code>
-                    <br/>
-                    <b>└ {item.name}</b>
-                  </div>
+                  {renderItem(item, idx)}
                   <Button
                     variant={"danger"}
                     className={"btn-sm"}

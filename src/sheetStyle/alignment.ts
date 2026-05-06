@@ -7,15 +7,18 @@ function horizontalAlignmentParse(st: CellStyle, hor: ExcelJS.Alignment['horizon
     case "distributed":
     case "left":
     case "fill":
+      st.tdStyle.justifyContent = "flex-start";
       st.containerStyle.justifyContent = "flex-start";
       st.contentStyle.textAlign = "left";
       break;
     case "center":
     case "centerContinuous":
+      st.tdStyle.justifyContent = "center";
       st.containerStyle.justifyContent = "center";
       st.contentStyle.textAlign = "center";
       break;
     case "right":
+      st.tdStyle.justifyContent = "flex-end";
       st.containerStyle.justifyContent = "flex-end";
       st.contentStyle.textAlign = "right";
       break;
@@ -25,19 +28,23 @@ function horizontalAlignmentParse(st: CellStyle, hor: ExcelJS.Alignment['horizon
 function verticalAlignmentParse(st: CellStyle, ver: ExcelJS.Alignment['vertical']): void {
   switch (ver) {
     case "top":
+      st.tdStyle.alignItems = "flex-start";
       st.containerStyle.alignItems = "flex-start";
       st.contentStyle.alignItems = "flex-start";
       break;
     case "middle":
+      st.tdStyle.alignItems = "center";
       st.containerStyle.alignItems = "center";
       st.contentStyle.alignItems = "center";
       break;
     case "bottom":
+      st.tdStyle.alignItems = "flex-end";
       st.containerStyle.alignItems = "flex-end";
       st.contentStyle.alignItems = "flex-end";
       break;
     case "justify":
     case "distributed":
+      st.tdStyle.alignItems = "stretch";
       st.containerStyle.alignItems = "stretch";
       st.contentStyle.alignItems = "stretch";
       break;

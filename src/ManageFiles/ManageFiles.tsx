@@ -85,6 +85,10 @@ export function ManageFiles({ applyChanges }: {applyChanges: (a: FileHolder[]) =
         })
     ).then(fileAdd);
   }, []);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (files.every(file => file.status === 'ready')) applyFiles();
+  }, [files]);
 
   return (
     <>

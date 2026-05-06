@@ -21,7 +21,7 @@
 }
 
 .excel td .cell-content{
-    overflow: visible;
+    overflow: hidden;
     display: inline-flex;
     vertical-align: top;
     white-space: pre;
@@ -32,9 +32,16 @@
     overflow: visible;
 }
 
-.excel tr:hover td:not(.columnHeader):not(.rowHeader) {
-    background-color: rgba(211, 211, 211, 0.5) !important;
-}
+/*Special mode, good if not stretched, but content doesn't fit
+.excel .cell-container:hover .cell-content {
+    border: 3px dashed cyan;
+    box-sizing: border-box;
+    background: white;
+}*/
+
+/*.excel tr:hover td:not(.rowHeader) {
+    background-color: #eee !important;
+}*/
 
 /* Styles for both */
 .excel td.columnHeader,
@@ -73,5 +80,8 @@
     position: sticky;
     left: 35px;
     z-index: 35;
-    background: white;
+}
+
+.excel .active{
+    background: cyan !important;
 }
