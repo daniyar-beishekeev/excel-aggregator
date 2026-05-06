@@ -11,20 +11,17 @@ import {PrivacyPolicy} from "./global/PrivacyPolicy.tsx";
 import {SelectSheets} from "./SelectSheets/SelectSheets.tsx";
 
 import {renderItem} from "./SelectSheets/SelectSheets.tsx";
-import {workbookHolder} from "./sheetStyle/workbookHolder.tsx";
+import {createWorkbookHolder, workbookHolder} from "./sheetStyle/workbookHolder.tsx";
 import {backgroundColor} from "./DiffCell.jsx";
 import ExcelJS from "exceljs";
+import {SelectableTool} from "./SelectableTool.tsx";
 
 const Cell = ({cell, listenersRef, cellEvaluator}) => {
-  const [tmp, setTmp] = useState(cellEvaluator(cell));
   const [, setTick] = useState(0);
   useEffect(() => {
-    listenersRef.current[cell.address] = () => {
-      setTick(t => t + 1)
-      setTmp(<span>{String(Math.random())}</span>)
-    };
+    listenersRef.current[cell.address] = () => setTick(t => t + 1);
     return () => delete listenersRef.current[cell.address];
-  }, [cell.address]);
+  }, []);
 
   return (
     <td
@@ -37,7 +34,7 @@ const Cell = ({cell, listenersRef, cellEvaluator}) => {
       colSpan={cell.colSpan}
     >
       <div className={'cell-container'} style={cell.containerStyle}>
-        {tmp}
+        {cellEvaluator(cell)}
       </div>
       <div className={"tag-container"}>{cell.comment}</div>
     </td>
@@ -62,17 +59,20 @@ function App() {
       if (id !== tableSchema.id) {
         const file = files.find(file => file.id === sheet.groupId);
         if (file) {
-          const wbHolder = await workbookHolder.create(file);
+          const wbHolder = await createWorkbookHolder(file);
           const grid = wbHolder.getGridTemplate(sheet.name);
+          const {totalRow, totalCol} = wbHolder.worksheetSize(sheet.name);
           setTableSchema({
-            grid, id
+            grid, id, totalCol, totalRow
           });
         }
       }
     }else{
       setTableSchema({
         grid: [],
-        id: null
+        id: null,
+        totalCol: 0,
+        totalRow: 0
       })
     }
 
@@ -115,7 +115,9 @@ function App() {
 
   const [tableSchema, setTableSchema] = useState({
     grid: [],
-    id: null
+    id: null,
+    totalCol: 0,
+    totalRow: 0
   });
 
   const listenersRef = useRef({});
@@ -124,6 +126,29 @@ function App() {
       listenersRef.current[address]?.();
     };
   }, []);
+
+  const setActiveCells = (address1, address2) => {
+    let [c1, r1] = address1;
+    let [c2, r2] = address2;
+    if (c1 > c2) [c1, c2] = [c2, c1];
+    if (r1 > r2) [r1, r2] = [r2, r1];
+    if (r1 === -1) {
+      r1 = 1;
+      r2 = tableSchema.totalRow;
+    }
+    if (c1 === -1) {
+      c1 = 1;
+      c2 = tableSchema.totalCol;
+    }
+    //document.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
+    for(let r = r1; r <= r2; r++)
+      for(let c = c1; c <= c2; c++) {
+        const td = cellMapRef.current.get(c + ',' + r);
+        if (td) {
+          td.classList.add('active');
+        }
+      }
+  }
 
   return (
     <div className="d-flex flex-column vh-100">
@@ -158,15 +183,17 @@ function App() {
         className="flex-grow-1 overflow-auto"
         style={{ marginTop: "95px" }}
       >
-        <table className={"excel"}>
-          <tbody>
-          {tableSchema.grid.map((row, rowIdx) =>
-            <tr key={rowIdx}>{row.map(cell =>
-              <Cell key={cell.address} cell={cell} cellEvaluator={cellEvaluator} listenersRef={listenersRef}/>
-            )}</tr>)
-          }
-          </tbody>
-        </table>
+        <SelectableTool>
+          <table className={"excel"}>
+            <tbody>
+            {tableSchema.grid.map((row, rowIdx) =>
+              <tr key={rowIdx}>{row.map(cell =>
+                <Cell key={cell.address} cell={cell} cellEvaluator={cellEvaluator} listenersRef={listenersRef}/>
+              )}</tr>)
+            }
+            </tbody>
+          </table>
+        </SelectableTool>
       </main>
     </div>
   );

@@ -79,7 +79,7 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
             id: crypto.randomUUID(),
             group: file.file.name,
             groupId: file.id,
-            name: 'Р.2',
+            name: file.sheetNames[0]!,
           };
           return res;
         }));

@@ -1,19 +1,29 @@
-//@ts-nocheck
-
 import {type ReactNode, useRef} from "react";
+import type React from "react";
 
-export function SelectableTool({children}: {children: ReactNode}) {
-  const getAddress = (e: Event) => {
-    let el = e.target;
+export function SelectableTool({children, handler}: {children: ReactNode, handler: Record<string, any>}) {
+  const getAddress = (e: React.MouseEvent<HTMLDivElement>): [number, number] => {
+    let el = e.target as HTMLElement | null;
     while (el && el.tagName !== "TD") el = el.parentElement;
     if (!el) return [0, 0];
-    return [el.getAttribute('data-c') ?? '0', el.getAttribute('data-r') ?? '0'].map(Number);
+    return [
+      Number(el.getAttribute('data-c') ?? '0'),
+      Number(el.getAttribute('data-r') ?? '0')
+    ];
   };
 
-  const boxRef = useRef(null);
-  const rectRef = useRef(null);
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const rectRef = useRef<HTMLDivElement | null>(null);
 
-  const dragging = useRef({
+  const dragging = useRef<{
+    active: boolean,
+    x: number,
+    y: number,
+    mx: number,
+    my: number,
+    raf: null | number,
+    address: [number, number]
+  }>({
     active: false,
     x: 0,
     y: 0,
@@ -23,12 +33,13 @@ export function SelectableTool({children}: {children: ReactNode}) {
     address: [0, 0],
   });
 
-  const onMouseDown = (e: MouseEvent) => {
+  const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 2) return;
     dragging.current.address = getAddress(e);
     e.preventDefault();
 
     const el = boxRef.current;
+    if (!el) return;
     const r = el.getBoundingClientRect();
 
     const x = e.clientX - r.left + el.scrollLeft;
@@ -39,18 +50,21 @@ export function SelectableTool({children}: {children: ReactNode}) {
     dragging.current.y = y;
 
     const rect = rectRef.current;
-    rect.style.display = "block";
-    rect.style.left = `${x}px`;
-    rect.style.top = `${y}px`;
-    rect.style.width = `0px`;
-    rect.style.height = `0px`;
-    rect.style.borderColor = e.button === 2 ? "red" : "blue";
+    if (rect) {
+      rect.style.display = "block";
+      rect.style.left = `${x}px`;
+      rect.style.top = `${y}px`;
+      rect.style.width = `0px`;
+      rect.style.height = `0px`;
+      rect.style.borderColor = e.button === 2 ? "red" : "blue";
+    }
   };
 
-  const onMouseMove = (e) => {
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!dragging.current.active) return;
 
     const el = boxRef.current;
+    if (!el) return;
     const r = el.getBoundingClientRect();
 
     dragging.current.mx = e.clientX - r.left + el.scrollLeft;
@@ -73,48 +87,29 @@ export function SelectableTool({children}: {children: ReactNode}) {
 
       const rect = rectRef.current;
 
-      rect.style.left = `${left}px`;
-      rect.style.top = `${top}px`;
-      rect.style.width = `${width}px`;
-      rect.style.height = `${height}px`;
-
+      if (rect) {
+        rect.style.left = `${left}px`;
+        rect.style.top = `${top}px`;
+        rect.style.width = `${width}px`;
+        rect.style.height = `${height}px`;
+      }
       d.raf = null;
     });
   };
 
-  const setActiveCells = (address1, address2) => {
-    let [c1, r1] = address1;
-    let [c2, r2] = address2;
-    if (c1 > c2) [c1, c2] = [c2, c1];
-    if (r1 > r2) [r1, r2] = [r2, r1];
-    if (r1 === -1) {
-      r1 = 1;
-      r2 = tableSize.totalRow;
-    }
-    if (c1 === -1) {
-      c1 = 1;
-      c2 = tableSize.totalCol;
-    }
-    document.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
-    for(let r = r1; r <= r2; r++)
-      for(let c = c1; c <= c2; c++) {
-        const td = cellMapRef.current.get(c + ',' + r);
-        if (td) {
-          td.classList.add('active');
-        }
-      }
-  }
-
-  const onMouseUp = (e: MouseEvent) => {
+  const onMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 2) return;
     const eps = 13 * window.devicePixelRatio;
     if (Math.abs(dragging.current.x - dragging.current.mx) < eps && Math.abs(dragging.current.y - dragging.current.my) < eps) {
 
     } else {
-      setActiveCells(dragging.current.address, getAddress(e));
+      const f = handler?.setActiveCells;
+      if (f && f instanceof Function)
+        f(dragging.current.address, getAddress(e));
     }
     dragging.current.active = false;
-    rectRef.current.style.display = "none";
+    if (rectRef.current)
+      rectRef.current.style.display = "none";
 
     if (dragging.current.raf) {
       cancelAnimationFrame(dragging.current.raf);

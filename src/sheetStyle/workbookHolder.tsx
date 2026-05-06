@@ -1,11 +1,13 @@
 import ExcelJS from "exceljs";
-import {type color} from "./indexedColors.ts"
-import {extractThemeColors} from "./indexedColors.ts";
-import type {FileHolder} from "../ManageFiles/FileHolder.ts";
 import {type CSSProperties, type JSX} from "react";
+import * as XLSX from "xlsx";
+
+import type {FileHolder} from "../ManageFiles/FileHolder.ts";
 import {CellTag} from "./CellTag.tsx";
 import {formatDate} from "../global/formatDate.ts";
 
+import {type color} from "./indexedColors.ts"
+import {extractThemeColors} from "./indexedColors.ts";
 import {parseAlignment} from "./alignment.ts";
 import {parseFill} from "./fill.ts";
 import {parseFont} from "./font.ts";
@@ -33,7 +35,28 @@ export interface CellTemplate extends CellStyle{
   readonly htmlContent: any;
 }
 
-export class workbookHolder{
+interface workbookHolderProps {
+  readonly id: string;
+  getGridTemplate: (sheetName: string) => CellTemplate[][];
+  worksheetSize: (sheetName: string) => {totalRow: number; totalCol: number};
+}
+
+export async function createWorkbookHolder (file: FileHolder): Promise<workbookHolderProps> {
+  const rawBuffer: ArrayBuffer = await file.file.arrayBuffer();
+  let arrayBuffer: ArrayBuffer
+    = file.file.name.endsWith(".xlsx")
+    ? rawBuffer
+    : XLSX.write(
+      XLSX.read(rawBuffer, { type: "array" }),
+      { bookType: "xlsx", type: "array" }
+    );
+
+  const wb: ExcelJS.Workbook = new ExcelJS.Workbook();
+  await wb.xlsx.load(arrayBuffer);
+  return new workbookHolder(wb, file.id);
+}
+
+export class workbookHolder implements workbookHolderProps{
   private readonly wb: ExcelJS.Workbook;
   public readonly id: string;
   public readonly themeColors: color[];
@@ -41,11 +64,6 @@ export class workbookHolder{
     this.wb = wb;
     this.id = id;
     this.themeColors = extractThemeColors(wb.model.themes);
-  }
-  public static async create(file: FileHolder) {
-    const wb: ExcelJS.Workbook = new ExcelJS.Workbook();
-    await wb.xlsx.load(await file.file.arrayBuffer());
-    return new workbookHolder(wb, file.id);
   }
   public getGridTemplate(sheetName: string): CellTemplate[][] {
     const ws = this.wb.getWorksheet(sheetName);
