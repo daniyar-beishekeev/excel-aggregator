@@ -16,6 +16,7 @@ import {backgroundColor} from "./DiffCell.jsx";
 import {SelectableTool} from "./SelectableTool.tsx";
 import * as XLSX from "xlsx";
 import {extractVals} from "./sheetData/parser.ts";
+import {VerticalSplitter} from "./layout/ScreenDivider.tsx";
 
 const Cell = ({address, tableData}) => {
   const cell = tableData.current[address];
@@ -194,9 +195,9 @@ function App() {
   }
 
   return (
-    <div className="d-flex flex-column vh-100">
+    <>
       <PrivacyPolicy/>
-      <header className="py-2 px-1 position-fixed top-0 start-0 w-100" style={{ zIndex: 12}}>
+      <VerticalSplitter root={true} distribution={[10, 90]}>
         <Stack gap={1}>
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <Stack direction={"horizontal"} gap={1}>
@@ -221,11 +222,6 @@ function App() {
             {selectedSheets.map(renderItem)}
           </Stack>
         </Stack>
-      </header>
-      <main
-        className="flex-grow-1 overflow-auto"
-        style={{ marginTop: "95px" }}
-      >
         <SelectableTool handler={{setActiveCells}}>
           <table className={"excel"}>
             <tbody>
@@ -237,8 +233,8 @@ function App() {
             </tbody>
           </table>
         </SelectableTool>
-      </main>
-    </div>
+      </VerticalSplitter>
+    </>
   );
 }
 

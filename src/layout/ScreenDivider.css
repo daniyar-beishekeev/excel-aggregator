@@ -1,0 +1,78 @@
+.sd-container {
+    display: flex;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.sd-container--vertical {
+    flex-direction: column;
+    width: 100%;
+}
+
+.sd-container--horizontal {
+    flex-direction: row;
+    height: 100%;
+}
+
+.sd-pane {
+    flex-shrink: 0;
+    flex-grow: 0;
+    overflow: auto;
+    min-height: 0;
+    min-width: 0;
+}
+
+.sd-divider {
+    flex-shrink: 0;
+    background: #eee;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 150ms;
+    z-index: 1;
+}
+
+.sd-divider:hover {
+    background: rgba(99, 102, 241, 0.18);
+}
+
+.sd-divider--vertical {
+    width: 100%;
+    cursor: row-resize;
+    flex-direction: row;
+    height: 5px;
+}
+
+.sd-divider--horizontal {
+    height: 100%;
+    cursor: col-resize;
+    flex-direction: column;
+    width: 5px;
+}
+
+.sd-grip-dot {
+    flex-shrink: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #adb5bd;
+    pointer-events: none;
+    transition: background 150ms, transform 150ms;
+}
+
+.sd-divider--vertical .sd-grip-dot {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.sd-divider--horizontal .sd-grip-dot {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.sd-divider:hover .sd-grip-dot {
+    background: #6366f1;
+    transform: scale(1.3);
+}
