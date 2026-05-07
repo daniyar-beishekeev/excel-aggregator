@@ -238,7 +238,7 @@ export class workbookHolder implements workbookHolderProps{
     if (r instanceof Date) r = formatDate({d: r});
     return r;
   }
-  public static getRawValue (cell: ExcelJS.Cell) {
+  public static getRawValue (cell: ExcelJS.Cell): null | string | number | Date | boolean{
     const v = cell.value;
     //type CellValue =
     // 	| null | number | string | boolean | Date | undefined

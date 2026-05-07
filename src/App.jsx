@@ -15,30 +15,60 @@ import {createWorkbookHolder, workbookHolder} from "./sheetStyle/workbookHolder.
 import {backgroundColor} from "./DiffCell.jsx";
 import ExcelJS from "exceljs";
 import {SelectableTool} from "./SelectableTool.tsx";
+import * as XLSX from "xlsx";
 
-const Cell = ({cell, listenersRef, cellEvaluator}) => {
+const Cell = ({address, tableData}) => {
+  const cell = tableData.current[address];
   const [, setTick] = useState(0);
   useEffect(() => {
-    listenersRef.current[cell.address] = () => setTick(t => t + 1);
-    return () => delete listenersRef.current[cell.address];
+    // eslint-disable-next-line react-hooks/immutability
+    tableData.current[address].listener = () => setTick(t => t + 1);
+    return () => delete tableData.current[address].listener;
   }, []);
+  let classes = cell.classList;
+  if (cell.active)
+    classes = (classes ?? '') + ' active';
 
   return (
     <td
       data-c={cell.c}
       data-r={cell.r}
-      className={cell.classList}
-      key={cell.address}
+      className={classes}
       style={cell.tdStyle}
       rowSpan={cell.rowSpan}
       colSpan={cell.colSpan}
     >
       <div className={'cell-container'} style={cell.containerStyle}>
-        {cellEvaluator(cell)}
+        {cellEvaluator(tableData.current[cell.address]) ?? cell.htmlContent}
       </div>
       <div className={"tag-container"}>{cell.comment}</div>
     </td>
   );
+};
+
+const cellEvaluator = (cell) => {
+  if (!cell) return cell;
+  const {values} = cell;
+  if (values) {
+    const vals = values;
+    if (vals.some(v => v !== vals[0]))
+      return (
+        <>
+          {vals.map((v, idx) =>
+            <>
+              {idx > 0 && <span className={"mx-1"}>↣</span>}
+              <div
+                className={'cell-content'}
+                style={{...cell.contentStyle, backgroundColor: backgroundColor(idx)}}
+              >{String(v)}</div>
+            </>
+          )}
+        </>
+      )
+  }
+  return (
+    <div className={'cell-content'} style={cell.contentStyle}>{cell.htmlContent}</div>
+  )
 };
 
 function App() {
@@ -51,9 +81,11 @@ function App() {
     setFiles(files);
   }
   const [selectedSheets, setSelectedSheets] = useState([]);
-  const [wss, setWss] = useState([]);
   const applySheets = async (sheets) => {
+    tableData.current = {};
     if (sheets.length > 0) {
+      let newSchema = null;
+
       const sheet = sheets[0];
       const id = sheet.groupId + '!' + sheet.name;
       if (id !== tableSchema.id) {
@@ -62,11 +94,37 @@ function App() {
           const wbHolder = await createWorkbookHolder(file);
           const grid = wbHolder.getGridTemplate(sheet.name);
           const {totalRow, totalCol} = wbHolder.worksheetSize(sheet.name);
-          setTableSchema({
-            grid, id, totalCol, totalRow
-          });
+          grid.forEach(row => row.forEach(cell => {
+            tableData.current[cell.address] = {...cell}
+          }));
+          newSchema = {
+            grid: grid.map(r => r.map(c => ({address: c.address}))), id, totalCol, totalRow
+          };
         }
       }
+      const emptyWs = new ExcelJS.Workbook().addWorksheet(`empty`)
+      const wss2 = await Promise.all(sheets.map(async sheet => {
+        const file = files.find(file => file.id === sheet.groupId);
+        if (!file) return emptyWs;
+
+        const wb = new ExcelJS.Workbook();
+        await wb.xlsx.load(await file.file.arrayBuffer());
+        const ws = wb.getWorksheet(sheet.name);
+        if (!ws) return emptyWs;
+        return ws;
+      }));
+      const {grid} = newSchema ?? tableSchema;
+      const extractVals = (wss, address) => {
+        if (address.at(0) !== '*' && address.at(-1) !== '*' && wss.length > 0)
+          return wss.map(ws => ws.getCell(address)).map(workbookHolder.getRawValue);
+        return null;
+      }
+      grid.forEach(row => row.forEach(cell => {
+        tableData.current[cell.address].values = extractVals(wss2, cell.address);
+      }));
+
+      if (newSchema !== null)
+        setTableSchema(newSchema);
     }else{
       setTableSchema({
         grid: [],
@@ -75,44 +133,12 @@ function App() {
         totalRow: 0
       })
     }
-
-    const emptyWs = new ExcelJS.Workbook().addWorksheet(`empty`)
-    Promise.all(sheets.map(async sheet => {
-      const file = files.find(file => file.id === sheet.groupId);
-      if (!file) return emptyWs;
-      const wb = new ExcelJS.Workbook();
-      await wb.xlsx.load(await file.file.arrayBuffer());
-      const ws = wb.getWorksheet(sheet.name);
-      if (!ws) return emptyWs;
-      return ws;
-    })).then(setWss)
+    setTableVersion(v => v + 1);
     setSelectedSheets(sheets);
   }
 
-  const cellEvaluator = useMemo(() => (cell) => {
-    if (!cell) return cell;
-    if (cell.r !== -1 && cell.c !== -1 && wss.length > 0) {
-      const vals = wss.map(ws => ws.getCell(cell.address)).map(workbookHolder.getRawValue);
-      if (vals.some(v => v !== vals[0]))
-        return (
-          <>
-            {vals.map((v, idx) =>
-              <>
-                {idx > 0 && <span className={"mx-1"}>↣</span>}
-                <div
-                  className={'cell-content'}
-                  style={{...cell.contentStyle, backgroundColor: backgroundColor(idx)}}
-                >{String(v)}</div>
-              </>
-            )}
-          </>
-        )
-    }
-    return (
-      <div className={'cell-content'} style={cell.contentStyle}>{cell.htmlContent}</div>
-    )
-  }, [wss]);
-
+  const tableData = useRef({});
+  const [tableVersion, setTableVersion] = useState(0);
   const [tableSchema, setTableSchema] = useState({
     grid: [],
     id: null,
@@ -120,16 +146,7 @@ function App() {
     totalRow: 0
   });
 
-  const listenersRef = useRef({});
-  useEffect(() => {
-    window.updateCell = (address) => {
-      listenersRef.current[address]?.();
-    };
-  }, []);
-
-  const setActiveCells = (address1, address2) => {
-    let [c1, r1] = address1;
-    let [c2, r2] = address2;
+  const setActiveCells = (c1, r1, c2, r2) => {
     if (c1 > c2) [c1, c2] = [c2, c1];
     if (r1 > r2) [r1, r2] = [r2, r1];
     if (r1 === -1) {
@@ -140,13 +157,22 @@ function App() {
       c1 = 1;
       c2 = tableSchema.totalCol;
     }
-    //document.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.active').forEach(el => {
+      const r = el.getAttribute('data-r') ?? '0';
+      const c = Number(el.getAttribute('data-c') ?? '0');
+      const address = XLSX.utils.encode_col(c - 1) + r;
+      tableData.current[address].active = false;
+      tableData.current[address]?.listener?.();
+    });
     for(let r = r1; r <= r2; r++)
       for(let c = c1; c <= c2; c++) {
-        const td = cellMapRef.current.get(c + ',' + r);
-        if (td) {
-          td.classList.add('active');
-        }
+        const address = XLSX.utils.encode_col(c - 1) + String(r);
+        tableData.current[address].active = true;
+        tableData.current[address].values = null;
+        tableData.current[address]?.listener?.();
+        //if (td) {
+        //  td.classList.add('active');
+        //}
       }
   }
 
@@ -183,14 +209,14 @@ function App() {
         className="flex-grow-1 overflow-auto"
         style={{ marginTop: "95px" }}
       >
-        <SelectableTool>
+        <SelectableTool handler={{setActiveCells}}>
           <table className={"excel"}>
-            <tbody>
+            <tbody key={tableVersion}>
             {tableSchema.grid.map((row, rowIdx) =>
               <tr key={rowIdx}>{row.map(cell =>
-                <Cell key={cell.address} cell={cell} cellEvaluator={cellEvaluator} listenersRef={listenersRef}/>
-              )}</tr>)
-            }
+                <Cell key={cell.address} address={cell.address} tableData={tableData}/>
+              )}</tr>
+            )}
             </tbody>
           </table>
         </SelectableTool>

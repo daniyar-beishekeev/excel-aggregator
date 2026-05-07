@@ -24,7 +24,7 @@ export interface EntityType{
 export const renderItem = (item: EntityType['children'][number], idx: number): React.ReactElement => {
   return(
     <div style={{backgroundColor: backgroundColor(idx)}} key={idx}>
-      <code className={"font-mono text-blue-700"}>{item.group}</code>
+      <code className={"font-mono text-blue-700 text-nowrap"}>{item.group}</code>
       <br/>
       <b>└ {item.name}</b>
     </div>
@@ -79,7 +79,7 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
             id: crypto.randomUUID(),
             group: file.file.name,
             groupId: file.id,
-            name: file.sheetNames[0]!,
+            name: file.sheetNames[2]!,
           };
           return res;
         }));
