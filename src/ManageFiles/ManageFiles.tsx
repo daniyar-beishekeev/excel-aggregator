@@ -30,7 +30,9 @@ export function ManageFiles({ applyChanges }: {applyChanges: (a: FileHolder[]) =
       const wb = XLSX.read(buffer, {
         type: 'array',
         bookSheets: true,
-        bookProps: true
+        bookProps: true,
+        bookFiles: false,
+        bookVBA: false
       });
       extraProps.status = 'ready';
       extraProps.sheetNames = wb.SheetNames;

@@ -32,7 +32,7 @@ export interface CellTemplate extends CellStyle{
   classList?: string | undefined;
 
   readonly comment?: JSX.Element | null | undefined;
-  readonly htmlContent: any;
+  readonly htmlContent: ReturnType<typeof workbookHolder.getRawValue> | JSX.Element;
 }
 
 interface workbookHolderProps {

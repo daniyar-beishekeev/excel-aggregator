@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {useGlobal} from "./global/GlobalContext.tsx";
 import {Dropdown, Stack} from "react-bootstrap";
 import i18n, {langList} from './global/i18n.ts';
@@ -11,20 +11,24 @@ import {PrivacyPolicy} from "./global/PrivacyPolicy.tsx";
 import {SelectSheets} from "./SelectSheets/SelectSheets.tsx";
 
 import {renderItem} from "./SelectSheets/SelectSheets.tsx";
-import {createWorkbookHolder, workbookHolder} from "./sheetStyle/workbookHolder.tsx";
+import {createWorkbookHolder} from "./sheetStyle/workbookHolder.tsx";
 import {backgroundColor} from "./DiffCell.jsx";
-import ExcelJS from "exceljs";
 import {SelectableTool} from "./SelectableTool.tsx";
 import * as XLSX from "xlsx";
+import {extractVals} from "./sheetData/parser.ts";
 
 const Cell = ({address, tableData}) => {
   const cell = tableData.current[address];
   const [, setTick] = useState(0);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
-    tableData.current[address].listener = () => setTick(t => t + 1);
-    return () => delete tableData.current[address].listener;
-  }, []);
+    if (tableData.current[address])
+      tableData.current[address].listener = () => setTick(t => t + 1);
+    return () => {
+      if (tableData.current[address])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        tableData.current[address].listener = () => {};
+    };
+  }, [tableData, address]);
   let classes = cell.classList;
   if (cell.active)
     classes = (classes ?? '') + ' active';
@@ -38,15 +42,14 @@ const Cell = ({address, tableData}) => {
       rowSpan={cell.rowSpan}
       colSpan={cell.colSpan}
     >
-      <div className={'cell-container'} style={cell.containerStyle}>
-        {cellEvaluator(tableData.current[cell.address]) ?? cell.htmlContent}
-      </div>
+      <div className={'cell-container'} style={cell.containerStyle}>{cellEvaluator(cell)}</div>
       <div className={"tag-container"}>{cell.comment}</div>
     </td>
   );
 };
 
 const cellEvaluator = (cell) => {
+  //NOTE: React key define error here
   if (!cell) return cell;
   const {values} = cell;
   if (values) {
@@ -60,7 +63,7 @@ const cellEvaluator = (cell) => {
               <div
                 className={'cell-content'}
                 style={{...cell.contentStyle, backgroundColor: backgroundColor(idx)}}
-              >{String(v)}</div>
+              >{v.t}</div>
             </>
           )}
         </>
@@ -74,65 +77,79 @@ const cellEvaluator = (cell) => {
 function App() {
   const {lang, setLang} = useGlobal();
   useEffect(() => {
-    i18n.changeLanguage(lang);
+    i18n.changeLanguage(lang).catch(console.error);
   }, [lang]);
   const [files, setFiles] = useState([]);
   const applyFiles = (files) => {
     setFiles(files);
   }
   const [selectedSheets, setSelectedSheets] = useState([]);
+  const applyVersion = useRef(0);
   const applySheets = async (sheets) => {
-    tableData.current = {};
-    if (sheets.length > 0) {
-      let newSchema = null;
-
-      const sheet = sheets[0];
-      const id = sheet.groupId + '!' + sheet.name;
-      if (id !== tableSchema.id) {
-        const file = files.find(file => file.id === sheet.groupId);
-        if (file) {
-          const wbHolder = await createWorkbookHolder(file);
-          const grid = wbHolder.getGridTemplate(sheet.name);
-          const {totalRow, totalCol} = wbHolder.worksheetSize(sheet.name);
-          grid.forEach(row => row.forEach(cell => {
-            tableData.current[cell.address] = {...cell}
-          }));
-          newSchema = {
-            grid: grid.map(r => r.map(c => ({address: c.address}))), id, totalCol, totalRow
-          };
-        }
-      }
-      const emptyWs = new ExcelJS.Workbook().addWorksheet(`empty`)
-      const wss2 = await Promise.all(sheets.map(async sheet => {
-        const file = files.find(file => file.id === sheet.groupId);
-        if (!file) return emptyWs;
-
-        const wb = new ExcelJS.Workbook();
-        await wb.xlsx.load(await file.file.arrayBuffer());
-        const ws = wb.getWorksheet(sheet.name);
-        if (!ws) return emptyWs;
-        return ws;
-      }));
-      const {grid} = newSchema ?? tableSchema;
-      const extractVals = (wss, address) => {
-        if (address.at(0) !== '*' && address.at(-1) !== '*' && wss.length > 0)
-          return wss.map(ws => ws.getCell(address)).map(workbookHolder.getRawValue);
-        return null;
-      }
-      grid.forEach(row => row.forEach(cell => {
-        tableData.current[cell.address].values = extractVals(wss2, cell.address);
-      }));
-
-      if (newSchema !== null)
-        setTableSchema(newSchema);
-    }else{
-      setTableSchema({
-        grid: [],
-        id: null,
-        totalCol: 0,
-        totalRow: 0
-      })
+    const version = ++applyVersion.current;
+    if (sheets.length === 0) {
+      tableData.current = {};
+      setTableSchema({ grid: [], id: null, totalCol: 0, totalRow: 0 });
+      setTableVersion(v => v + 1);
+      setSelectedSheets([]);
+      return;
     }
+    let newSchema = null;
+    const sheet = sheets[0];
+    const id = sheet.groupId + '!' + sheet.name;
+
+    if (id !== tableSchema.id) {
+      const file = files.find(file => file.id === sheet.groupId);
+      if (file) {
+        const wbHolder = await createWorkbookHolder(file);
+        if (version !== applyVersion.current) return;//FIXME
+        const grid = wbHolder.getGridTemplate(sheet.name);
+        const {totalRow, totalCol} = wbHolder.worksheetSize(sheet.name);
+        const nextTableData = {};
+        for (const row of grid)
+          for (const cell of row)
+            nextTableData[cell.address] = { ...cell };
+        tableData.current = nextTableData;
+        newSchema = {
+          grid: grid.map(r => r.map(c => ({address: c.address}))), id, totalCol, totalRow
+        };
+      }
+    }
+    const emptyWs = Object.freeze({});
+    const wss2 = await Promise.all(sheets.map(async sheet => {
+      const file = files.find(file => file.id === sheet.groupId);
+      if (!file) return emptyWs;
+      const buffer = await file.file.arrayBuffer();
+      if (version !== applyVersion.current) return emptyWs;
+      const wb = XLSX.read(buffer, {
+        type: 'array',
+        cellFormula: true,
+        cellHTML: false,
+        cellNF: false,
+        cellStyles: false,
+        cellDates: false,
+        dense: false,
+        sheets: sheet.name,
+        cellText: false,
+        bookDeps: false,
+        bookFiles: false,
+        bookProps: false,
+        bookSheets: false,
+      });
+      if (!wb) return emptyWs;
+      const ws = wb.Sheets[sheet.name];
+      if (!ws) return emptyWs;
+      return ws;
+    }));
+    if (version !== applyVersion.current) return;
+
+    const {grid} = newSchema ?? tableSchema;
+    for (const row of grid)
+      for (const cell of row)
+        tableData.current.values = extractVals(wss2, cell.address);
+
+    if (newSchema !== null)
+      setTableSchema(newSchema);
     setTableVersion(v => v + 1);
     setSelectedSheets(sheets);
   }
@@ -211,10 +228,10 @@ function App() {
       >
         <SelectableTool handler={{setActiveCells}}>
           <table className={"excel"}>
-            <tbody key={tableVersion}>
+            <tbody>
             {tableSchema.grid.map((row, rowIdx) =>
               <tr key={rowIdx}>{row.map(cell =>
-                <Cell key={cell.address} address={cell.address} tableData={tableData}/>
+                <Cell key={cell.address} address={cell.address} version={tableVersion} tableData={tableData}/>
               )}</tr>
             )}
             </tbody>

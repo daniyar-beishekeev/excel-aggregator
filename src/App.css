@@ -1,15 +1,6 @@
 html, body, #root {
     height: 100%;
-}
-
-.modal-stretch {
-    max-width: none !important;
-    width: fit-content !important;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.modal-90w {
-    max-width: 90% !important;
-    width: 90% !important;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
