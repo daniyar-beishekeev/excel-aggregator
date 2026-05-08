@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 
 import type {FileHolder} from "../ManageFiles/FileHolder.ts";
 import {CellTag} from "./CellTag.tsx";
-import {formatDate} from "../global/formatDate.ts";
+import {formatDate} from "../utils/formatDate.ts";
 
 import {type color} from "./indexedColors.ts"
 import {extractThemeColors} from "./indexedColors.ts";
@@ -19,6 +19,7 @@ export interface CellStyle {
   readonly tdStyle: CSSProperties;
   readonly containerStyle: CSSProperties;
   readonly contentStyle: CSSProperties;
+  readonly numFmt?: string | undefined;
 }
 
 export interface CellTemplate extends CellStyle{
@@ -200,7 +201,8 @@ export class workbookHolder implements workbookHolderProps{
     const st: CellStyle = {
       tdStyle: {},
       containerStyle: {},
-      contentStyle: {}
+      contentStyle: {},
+      numFmt: cell.numFmt
     }
     parseBorder(this, st, cell);
     parseAlignment(this, st, cell.alignment ?? {});

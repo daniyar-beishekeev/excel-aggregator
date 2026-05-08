@@ -5,7 +5,7 @@ import {useTranslation} from "react-i18next";
 import {useLocalStorage} from "../utils/persistentState.ts";
 import {useGlobal} from "../global/GlobalContext.tsx";
 import {debounce} from "lodash";
-import {formatDate} from "../global/formatDate.ts"
+import {formatDate} from "../utils/formatDate.ts"
 
 const color_scheme: Record<string, string> = {
     processing: '#3182ce',

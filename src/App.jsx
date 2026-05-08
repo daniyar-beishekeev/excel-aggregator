@@ -1,7 +1,7 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import {useGlobal} from "./global/GlobalContext.tsx";
 import {Dropdown, Stack} from "react-bootstrap";
-import i18n, {langList} from './global/i18n.ts';
+import {langList} from './global/i18n.ts';
 
 import "./App.css"
 import {MemoryUsage} from "./utils/MemoryUsage.tsx";
@@ -15,25 +15,25 @@ import {createWorkbookHolder} from "./sheetStyle/workbookHolder.tsx";
 import {backgroundColor} from "./DiffCell.jsx";
 import {SelectableTool} from "./SelectableTool.tsx";
 import * as XLSX from "xlsx";
-import {extractVals} from "./sheetData/parser.ts";
-import {VerticalSplitter} from "./layout/ScreenDivider.tsx";
+import {HorizontalSplitter, VerticalSplitter} from "./layout/ScreenDivider.tsx";
+import {CellParams} from "./CellParams.tsx";
 
-const Cell = ({address, tableData}) => {
-  const cell = tableData.current[address];
+import {format} from 'ssf';
+import {extractVals, parseWorksheet} from "./sheetData/parseWorksheet.ts";
+
+const Cell = ({address, tableData, version}) => {
   const [, setTick] = useState(0);
   useEffect(() => {
-    if (tableData.current[address])
-      tableData.current[address].listener = () => setTick(t => t + 1);
-    return () => {
-      if (tableData.current[address])
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        tableData.current[address].listener = () => {};
-    };
-  }, [tableData, address]);
+    const cell = tableData.current[address];
+    const listener = () => setTick(t => t + 1);
+    cell.listeners.add(listener);
+    return () => cell.listeners.delete(listener);
+  }, [tableData, address, version]);
+
+  const cell = tableData.current[address];
   let classes = cell.classList;
   if (cell.active)
     classes = (classes ?? '') + ' active';
-
   return (
     <td
       data-c={cell.c}
@@ -52,10 +52,15 @@ const Cell = ({address, tableData}) => {
 const cellEvaluator = (cell) => {
   //NOTE: React key define error here
   if (!cell) return cell;
+  const mode = cell.params.mode ?? 'v';
+  const f = cell.params.formatNumber && cell.numFmt ? (x => format(cell.numFmt, x)) : (x => x)
   const {values} = cell;
-  if (values) {
-    const vals = values;
-    if (vals.some(v => v !== vals[0]))
+  let contentStyle = cell.contentStyle;
+  if (cell.params.stretchCell)
+    contentStyle = {...contentStyle, maxWidth: null};
+  if (values && mode) {
+    const vals = values.map(v => v[mode]);
+    if (vals.some(v => v !== vals[0])) {
       return (
         <>
           {vals.map((v, idx) =>
@@ -63,36 +68,51 @@ const cellEvaluator = (cell) => {
               {idx > 0 && <span className={"mx-1"}>↣</span>}
               <div
                 className={'cell-content'}
-                style={{...cell.contentStyle, backgroundColor: backgroundColor(idx)}}
-              >{v.t}</div>
+                style={{...contentStyle, backgroundColor: backgroundColor(idx)}}
+              >{f(v)}</div>
             </>
           )}
         </>
       )
+    } else if (mode !== 'v') {
+      const text = mode === 'f' ? (vals[0] ? '=' + vals[0] : '') : vals[0];
+      return (
+        <div className={'cell-content'} style={contentStyle}>{text}</div>
+      )
+    }
   }
   return (
-    <div className={'cell-content'} style={cell.contentStyle}>{cell.htmlContent}</div>
+    <div className={'cell-content'} style={contentStyle}>{cell.htmlContent}</div>
   )
 };
 
 function App() {
-  const {lang, setLang} = useGlobal();
-  useEffect(() => {
-    i18n.changeLanguage(lang).catch(console.error);
-  }, [lang]);
+  const {setLang} = useGlobal();
   const [files, setFiles] = useState([]);
+  const tableData = useRef({});
+  const [tableVersion, setTableVersion] = useState(0);
+  const [tableSchema, setTableSchema] = useState({
+    grid: [],
+    id: null,
+    totalCol: 0,
+    totalRow: 0
+  });
+  const activeRange = useRef(null);
+  const [rangeText, setRangeText] = useState(null);
+  const [form, setForm] = useState({});
+  const [selectedSheets, setSelectedSheets] = useState([]);
+
   const applyFiles = (files) => {
     setFiles(files);
   }
-  const [selectedSheets, setSelectedSheets] = useState([]);
-  const applyVersion = useRef(0);
   const applySheets = async (sheets) => {
-    const version = ++applyVersion.current;
+    activeRange.current = null;
     if (sheets.length === 0) {
       tableData.current = {};
       setTableSchema({ grid: [], id: null, totalCol: 0, totalRow: 0 });
       setTableVersion(v => v + 1);
       setSelectedSheets([]);
+      activeRange.current = null;
       return;
     }
     let newSchema = null;
@@ -103,51 +123,28 @@ function App() {
       const file = files.find(file => file.id === sheet.groupId);
       if (file) {
         const wbHolder = await createWorkbookHolder(file);
-        if (version !== applyVersion.current) return;//FIXME
         const grid = wbHolder.getGridTemplate(sheet.name);
         const {totalRow, totalCol} = wbHolder.worksheetSize(sheet.name);
         const nextTableData = {};
         for (const row of grid)
           for (const cell of row)
-            nextTableData[cell.address] = { ...cell };
+            nextTableData[cell.address] = {...cell,
+              listeners: new Set()
+            };
         tableData.current = nextTableData;
         newSchema = {
           grid: grid.map(r => r.map(c => ({address: c.address}))), id, totalCol, totalRow
         };
       }
     }
-    const emptyWs = Object.freeze({});
-    const wss2 = await Promise.all(sheets.map(async sheet => {
-      const file = files.find(file => file.id === sheet.groupId);
-      if (!file) return emptyWs;
-      const buffer = await file.file.arrayBuffer();
-      if (version !== applyVersion.current) return emptyWs;
-      const wb = XLSX.read(buffer, {
-        type: 'array',
-        cellFormula: true,
-        cellHTML: false,
-        cellNF: false,
-        cellStyles: false,
-        cellDates: false,
-        dense: false,
-        sheets: sheet.name,
-        cellText: false,
-        bookDeps: false,
-        bookFiles: false,
-        bookProps: false,
-        bookSheets: false,
-      });
-      if (!wb) return emptyWs;
-      const ws = wb.Sheets[sheet.name];
-      if (!ws) return emptyWs;
-      return ws;
-    }));
-    if (version !== applyVersion.current) return;
+    const wss2 = await Promise.all(sheets.map(sheet => parseWorksheet(files.find(file => file.id === sheet.groupId), sheet.name)));
 
     const {grid} = newSchema ?? tableSchema;
     for (const row of grid)
-      for (const cell of row)
-        tableData.current.values = extractVals(wss2, cell.address);
+      for (const cell of row) {
+        tableData.current[cell.address].values = extractVals(wss2, cell.address);
+        tableData.current[cell.address].params = {};
+      }
 
     if (newSchema !== null)
       setTableSchema(newSchema);
@@ -155,14 +152,10 @@ function App() {
     setSelectedSheets(sheets);
   }
 
-  const tableData = useRef({});
-  const [tableVersion, setTableVersion] = useState(0);
-  const [tableSchema, setTableSchema] = useState({
-    grid: [],
-    id: null,
-    totalCol: 0,
-    totalRow: 0
-  });
+  const refreshCell = useMemo(() => (address) => {
+    const cell = tableData.current[address];
+    cell.listeners?.forEach(listener => listener());
+  }, [tableData]);
 
   const setActiveCells = (c1, r1, c2, r2) => {
     if (c1 > c2) [c1, c2] = [c2, c1];
@@ -179,20 +172,38 @@ function App() {
       const r = el.getAttribute('data-r') ?? '0';
       const c = Number(el.getAttribute('data-c') ?? '0');
       const address = XLSX.utils.encode_col(c - 1) + r;
-      tableData.current[address].active = false;
-      tableData.current[address]?.listener?.();
+      const cell = tableData.current[address];
+      if (!cell) return;
+      cell.active = false;
+      refreshCell(address);
     });
     for(let r = r1; r <= r2; r++)
       for(let c = c1; c <= c2; c++) {
         const address = XLSX.utils.encode_col(c - 1) + String(r);
-        tableData.current[address].active = true;
-        tableData.current[address].values = null;
-        tableData.current[address]?.listener?.();
-        //if (td) {
-        //  td.classList.add('active');
-        //}
+        const cell = tableData.current[address];
+        if (!cell) continue;
+        cell.active = true;
+        refreshCell(address);
       }
+    activeRange.current = {r1, r2, c1, c2};
+    setRangeText(`${XLSX.utils.encode_col(c1 - 1)}${r1}:${XLSX.utils.encode_col(c2 - 1)}${r2}`)
+    setForm({});
   }
+
+  useEffect(() => {
+    if (activeRange.current && form.userInput) {
+      const {c1, c2, r1, r2} = activeRange.current;
+      const params = Object.freeze({...form});
+      for(let r = r1; r <= r2; r++)
+        for(let c = c1; c <= c2; c++) {
+          const address = XLSX.utils.encode_col(c - 1) + String(r);
+          const cell = tableData.current[address];
+          if (!cell) continue;
+          cell.params = params;
+          refreshCell(address);
+        }
+    }
+  }, [form, refreshCell])
 
   return (
     <>
@@ -202,6 +213,7 @@ function App() {
           <div style={{display: "flex", justifyContent: "space-between"}}>
             <Stack direction={"horizontal"} gap={1}>
               <SelectSheets files={files} applySheets={applySheets}/>
+              <b>{rangeText}</b>
             </Stack>
             <Stack direction="horizontal" gap={2}>
               {import.meta.env.DEV && <MemoryUsage/>}
@@ -222,17 +234,23 @@ function App() {
             {selectedSheets.map(renderItem)}
           </Stack>
         </Stack>
-        <SelectableTool handler={{setActiveCells}}>
-          <table className={"excel"}>
-            <tbody>
-            {tableSchema.grid.map((row, rowIdx) =>
-              <tr key={rowIdx}>{row.map(cell =>
-                <Cell key={cell.address} address={cell.address} version={tableVersion} tableData={tableData}/>
-              )}</tr>
-            )}
-            </tbody>
-          </table>
-        </SelectableTool>
+        <HorizontalSplitter distribution={[80, 20]}>
+          <SelectableTool handler={{setActiveCells}}>
+            <table className={"excel"}>
+              <tbody>
+              {tableSchema.grid.map((row, rowIdx) =>
+                <tr key={rowIdx}>{row.map(cell =>
+                  <Cell key={cell.address} address={cell.address} version={tableVersion} tableData={tableData}/>
+                )}</tr>
+              )}
+              </tbody>
+            </table>
+          </SelectableTool>
+          <VerticalSplitter>
+            <CellParams sheetNum={selectedSheets.length} form={form} setForm={setForm}/>
+            <pre>{JSON.stringify(form, null, 2)}</pre>
+          </VerticalSplitter>
+        </HorizontalSplitter>
       </VerticalSplitter>
     </>
   );

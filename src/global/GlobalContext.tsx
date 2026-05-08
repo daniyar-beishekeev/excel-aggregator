@@ -1,5 +1,6 @@
-import { createContext, useContext } from "react";
+import {createContext, useContext, useEffect, useState} from "react";
 import {useLocalStorage} from "../utils/persistentState.ts";
+import i18n from "i18next";
 
 type GlobalContextType = {
     lang: string;
@@ -9,6 +10,9 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export const GlobalProvider = ({ children }: {children: any}) => {
     const [lang, setLang] = useLocalStorage("lang", "ru");
+    useEffect(() => {
+        i18n.changeLanguage(lang).catch(console.error);
+    }, [lang]);
 
     return (
         <GlobalContext.Provider value={{

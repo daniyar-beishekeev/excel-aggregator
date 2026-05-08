@@ -118,6 +118,9 @@ function Splitter(direction: Direction, { children, style, className, root, dist
     console.error('Children length and size distribution length mismatch');
     debugger;
   }
+  if (Math.abs(sz.reduce((p, c) => p + c, 0) - 100) > 1){
+    console.error('Invalid size distribution');
+  }
   const { sizes, containerRef, onMouseDown, onTouchStart } = useSplitter(sz, direction, minRatio ?? 1);
   const sizeProp = direction === 'horizontal' ? 'width': 'height';
   return (

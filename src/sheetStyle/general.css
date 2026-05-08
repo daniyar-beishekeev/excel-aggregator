@@ -22,7 +22,7 @@
 
 .excel td .cell-content{
     overflow: hidden;
-    display: inline-flex;
+    display: inline-block;
     vertical-align: top;
     white-space: pre;
 }
