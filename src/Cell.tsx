@@ -268,7 +268,7 @@ function freqAggregator(vals: m2cv, customContentStyle: Readonly<CSSProperties>,
           >{f(v)}→{cnt}</div>
         </>)
       )}
-      {vals.length >= limit && groupDelimiter(', ...')}
+      {freqList.length >= limit && groupDelimiter(', ...')}
     </>
   )
 }
@@ -287,7 +287,7 @@ function setAggregator(vals: m2cv, customContentStyle: Readonly<CSSProperties>, 
           >{f(v)}</div>
         </>)
       )}
-      {vals.length >= limit && groupDelimiter(', ...')}
+      {st.length >= limit && groupDelimiter(', ...')}
       {groupDelimiter('}')}
     </>
   )

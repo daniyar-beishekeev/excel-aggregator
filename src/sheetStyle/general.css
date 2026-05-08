@@ -82,6 +82,6 @@
     z-index: 35;
 }
 
-.excel .active{
-    background: cyan !important;
+.excel .active {
+    box-shadow: inset 0 0 0 9999px rgba(135, 206, 235, 0.45);
 }

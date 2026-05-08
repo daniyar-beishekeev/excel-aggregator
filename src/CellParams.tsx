@@ -4,7 +4,7 @@ import {useTranslation} from "react-i18next";
 
 export type FormTypeFull = {
   mode: 'v' | 'f' | 't';
-  generalAggregator: 'diff' | 'freq' | 'countSet' | 'set';
+  generalAggregator: 'none' | 'diff' | 'freq' | 'countSet' | 'set';
   diffLevel: 'strict';
   showLimit: number;
   numberAggregator: 'none' | 'sum' | 'sub' | 'avg' | 'min' | 'max' | 'range' | 'diffVar' | 'diffVarPercent';
@@ -98,6 +98,7 @@ export function CellParams({sheetNum, form, setForm}: {sheetNum: number, form: F
             </Form.Select>
             <Form.Select {...s('generalAggregator')}>
               <option value="" disabled hidden/>
+              <option value="none">{t('aggregator.none')}</option>
               <option value="diff">{t('aggregator.diff')}</option>
               <option value="freq">{t('aggregator.freq')}</option>
               <option value="countSet">{t('aggregator.countSet')}</option>
