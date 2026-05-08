@@ -2,7 +2,7 @@ import React from "react";
 import {Button, Form, Stack} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 
-type FormType = Partial<{
+export type FormType = Partial<{
   mode: 'v' | 'f' | 't';
   generalAggregator: 'diff' | 'freq' | 'countSet' | 'set';
   numberAggregator: 'none' | 'sum' | 'sub' | 'avg' | 'min' | 'max';

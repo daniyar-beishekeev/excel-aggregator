@@ -26,7 +26,7 @@ export async function parseWorksheet(file: FileHolder | undefined, sheet: string
   return ws;
 }
 
-type cellValue = XLSX.CellObject;
+export type cellValue = XLSX.CellObject;
 
 const nullCell: cellValue = Object.freeze({t: 'z'});
 export function extractVals(wss: XLSX.WorkSheet[], address: string): cellValue[] | null {

@@ -28,12 +28,12 @@ export interface CellTemplate extends CellStyle{
   readonly c: number;
   readonly rowSpan: number;
   readonly colSpan: number;
-  w: number;
-  h: number;
-  classList?: string | undefined;
+  readonly w: number;
+  readonly h: number;
+  readonly classList?: string | undefined;
 
   readonly comment?: JSX.Element | null | undefined;
-  readonly htmlContent: ReturnType<typeof workbookHolder.getRawValue> | JSX.Element;
+  readonly htmlContent: ReturnType<workbookHolder['getHTMLValue']>;
 }
 
 interface workbookHolderProps {
@@ -223,7 +223,7 @@ export class workbookHolder implements workbookHolderProps{
       })}
     </CellTag>
   }
-  private getHTMLValue (cell: ExcelJS.Cell) {
+  private getHTMLValue (cell: ExcelJS.Cell): null | string | number | JSX.Element | boolean {
     const v = cell.value;
     if (v != null && typeof v === 'object' && 'richText' in v) {
       return (
