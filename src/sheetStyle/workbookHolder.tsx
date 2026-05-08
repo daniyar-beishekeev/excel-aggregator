@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import type {FileHolder} from "../ManageFiles/FileHolder.ts";
 import {CellTag} from "./CellTag.tsx";
 import {formatDate} from "../utils/formatDate.ts";
+import {format} from "ssf";
 
 import {type color} from "./indexedColors.ts"
 import {extractThemeColors} from "./indexedColors.ts";
@@ -234,6 +235,7 @@ export class workbookHolder implements workbookHolderProps{
     }
     let r = workbookHolder.getRawValue(cell);
     if (r instanceof Date) r = formatDate({d: r});
+    if (typeof r === 'number' && cell.numFmt) r = format(cell.numFmt, r);
     return r;
   }
   public static getRawValue (cell: ExcelJS.Cell): null | string | number | Date | boolean{

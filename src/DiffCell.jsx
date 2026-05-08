@@ -20,7 +20,8 @@ const isNumberOrNull = (x) => {
   return x === null || typeof x === 'number';
 }
 
-const GroupDelimiter = ({children}) => <span className={"mx-1"}>{children}</span>
+//eslint-disable-next-line
+function GroupDelimiter({children}){return <span className={"mx-1"}>{children}</span>}
 
 const getFormulaResolver = (formula) => {
   const round = (num) => Number(num.toFixed(3));
