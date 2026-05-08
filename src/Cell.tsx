@@ -37,7 +37,8 @@ export function Cell({address, tableData, version}: {address: string, tableData:
       <div className={"tag-container"}>{cell.comment}</div>
     </td>
   );
-};
+}
+
 const cellEvaluator = (cell: CellData): JSX.Element | undefined => {
   //NOTE: React key define error here
   const mode = cell.params.mode ?? 'v';

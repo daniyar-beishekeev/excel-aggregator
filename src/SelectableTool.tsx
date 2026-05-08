@@ -47,8 +47,9 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
     const el = boxRef.current;
     if (!el) return;
 
-    const x = e.clientX + el.scrollLeft;
-    const y = e.clientY + el.scrollTop;
+    const r = el.getBoundingClientRect();
+    const x = e.clientX + el.scrollLeft - r.left;
+    const y = e.clientY + el.scrollTop - r.top;
 
     dragging.current.active = true;
     if(td?.classList?.contains?.('active')) {
@@ -61,10 +62,7 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
 
     const rect = rectRef.current;
     if (rect) {
-      const r = el.getBoundingClientRect();
       rect.style.display = "block";
-      rect.style.marginLeft = `${-r.left}px`;
-      rect.style.marginTop = `${-r.top}px`;
       rect.style.left = `${x}px`;
       rect.style.top = `${y}px`;
       rect.style.width = `0px`;
@@ -79,8 +77,9 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
     const el = boxRef.current;
     if (!el) return;
 
-    dragging.current.mx = e.clientX + el.scrollLeft;
-    dragging.current.my = e.clientY + el.scrollTop;
+    const r = el.getBoundingClientRect();
+    dragging.current.mx = e.clientX + el.scrollLeft - r.left;
+    dragging.current.my = e.clientY + el.scrollTop - r.top;
 
     if (dragging.current.raf) return;
 
