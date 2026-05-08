@@ -1,17 +1,24 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {Button, Form, Stack} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 
 export type FormType = Partial<{
   mode: 'v' | 'f' | 't';
   generalAggregator: 'diff' | 'freq' | 'countSet' | 'set';
-  numberAggregator: 'none' | 'sum' | 'sub' | 'avg' | 'min' | 'max';
+  diffLevel: string;
+  showLimit: number;
+  numberAggregator: 'none' | 'sum' | 'sub' | 'avg' | 'min' | 'max' | 'range';
   formatNumber: boolean;
   stretchCell: boolean;
+  compactCell: boolean;
   userInput: boolean;
 }>
 export function CellParams({sheetNum, form, setForm}: {sheetNum: number, form: FormType, setForm: React.Dispatch<React.SetStateAction<FormType>>}) {
   const {t} = useTranslation();
+  const [temporaryForm, setTemporaryForm] = useState<FormType>({});
+  useEffect(() => {
+    setTemporaryForm(form);
+  }, [form]);
   const s = <K extends keyof FormType>(name: K) => ({
     value: form[name] ?? '',
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) =>
@@ -27,9 +34,24 @@ export function CellParams({sheetNum, form, setForm}: {sheetNum: number, form: F
         ...form, userInput: true,
         [name]: e.target.checked as FormType[K]
       }),
-    label: name,
+    label: t(name),
     id: `cell-param-${name}`,
   });
+  const n = <K extends keyof FormType>(name: K) => ({
+    type: 'number',
+    placeholder: t(`param.${name}`),
+    value: temporaryForm[name] ?? '',
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+      setTemporaryForm({
+        ...temporaryForm,
+        [name]: e.target.value as FormType[K]
+      }),
+    onBlur: () =>
+      setForm({
+        ...form, userInput: true,
+        [name]: temporaryForm[name]
+      })
+  })
 
   return (
     <Stack gap={2} className="p-2">
@@ -46,6 +68,10 @@ export function CellParams({sheetNum, form, setForm}: {sheetNum: number, form: F
         <option value="countSet">{t('aggregator.countSet')}</option>
         <option value="set">{t('aggregator.set')}</option>
       </Form.Select>
+      {form.generalAggregator === 'diff' && <Form.Select {...s('diffLevel')}>
+        <option value="" disabled hidden></option>
+      </Form.Select>}
+      {['diff', 'set', 'freq'].includes(form.generalAggregator ?? '') && <Form.Control {...n('showLimit')}/>}
       <Form.Select {...s('numberAggregator')}>
         <option value="" disabled hidden/>
         <option value="none">{t('aggregator.none')}</option>
@@ -54,8 +80,10 @@ export function CellParams({sheetNum, form, setForm}: {sheetNum: number, form: F
         <option value="avg">{t('aggregator.avg')}</option>
         <option value="min">{t('aggregator.min')}</option>
         <option value="max">{t('aggregator.max')}</option>
+        <option value="max">{t('aggregator.range')}</option>
       </Form.Select>
       <Form.Check {...b('formatNumber')}/>
+      <Form.Check {...b('compactCell')}/>
       <Form.Check {...b('stretchCell')}/>
 
       <Button onClick={() => setForm({})}>RESET</Button>

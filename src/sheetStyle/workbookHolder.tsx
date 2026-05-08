@@ -142,10 +142,6 @@ export class workbookHolder implements workbookHolderProps{
         const st: CellStyle = this.parseStyle(cell);
         const w: number = widthPref[range.right]! - widthPref[range.left - 1]!;
         const h: number = heightPref[range.bottom]! - heightPref[range.top - 1]!;
-        st.containerStyle.minWidth = w;
-        st.contentStyle.maxWidth = w;
-
-        st.containerStyle.height = h;
         cells.push({
           r: rowNum, c: colNum,
           address: cell.address,

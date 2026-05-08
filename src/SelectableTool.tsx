@@ -22,8 +22,6 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
     active: boolean,
     x: number,
     y: number,
-    mx: number,
-    my: number,
     raf: null | number,
     touchTime: number,
     address: [number, number]
@@ -31,8 +29,6 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
     active: false,
     x: 0,
     y: 0,
-    mx: 0,
-    my: 0,
     raf: null,
     touchTime: 0,
     address: [0, 0],
@@ -40,12 +36,14 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
 
   const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 2) return;
+    const rect = rectRef.current;
+    if (!rect) return;
+    const el = boxRef.current;
+    if (!el) return;
+
     const td = parentTd(e);
     dragging.current.address = extractAddress(td);
     e.preventDefault();
-
-    const el = boxRef.current;
-    if (!el) return;
 
     const r = el.getBoundingClientRect();
     const x = e.clientX + el.scrollLeft - r.left;
@@ -59,61 +57,52 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
     }
     dragging.current.x = x;
     dragging.current.y = y;
-
-    const rect = rectRef.current;
-    if (rect) {
-      rect.style.display = "block";
-      rect.style.left = `${x}px`;
-      rect.style.top = `${y}px`;
-      rect.style.width = `0px`;
-      rect.style.height = `0px`;
-      rect.style.borderColor = e.button === 2 ? "red" : "blue";
-    }
+    rect.style.display = "block";
+    rect.style.left = `${x}px`;
+    rect.style.top = `${y}px`;
+    rect.style.width = `0px`;
+    rect.style.height = `0px`;
+    rect.style.borderColor = e.button === 2 ? "red" : "blue";
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!dragging.current.active) return;
-
+    if (dragging.current.raf) return;
+    const rect = rectRef.current;
+    if (!rect) return;
     const el = boxRef.current;
     if (!el) return;
 
     const r = el.getBoundingClientRect();
-    dragging.current.mx = e.clientX + el.scrollLeft - r.left;
-    dragging.current.my = e.clientY + el.scrollTop - r.top;
-
-    if (dragging.current.raf) return;
+    const mx = e.clientX + el.scrollLeft - r.left;
+    const my = e.clientY + el.scrollTop - r.top;
+    const {x, y} = dragging.current;
+    const left = Math.min(x, mx);
+    const top = Math.min(y, my);
+    const width = Math.abs(x - mx);
+    const height = Math.abs(y - my);
 
     dragging.current.raf = requestAnimationFrame(() => {
-      const {x, y, mx, my} = dragging.current;
-
-      const left = Math.min(x, mx);
-      const top = Math.min(y, my);
-      const width = Math.abs(x - mx);
-      const height = Math.abs(y - my);
-
-      const rect = rectRef.current;
-
-      if (rect) {
-        rect.style.left = `${left}px`;
-        rect.style.top = `${top}px`;
-        rect.style.width = `${width}px`;
-        rect.style.height = `${height}px`;
-      }
+      rect.style.left = `${left}px`;
+      rect.style.top = `${top}px`;
+      rect.style.width = `${width}px`;
+      rect.style.height = `${height}px`;
       dragging.current.raf = null;
     });
   };
 
   const onMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 2) return;
-    if (Date.now() - dragging.current.touchTime < 200) {
+    const [c1, r1] = dragging.current.address;
+
+    const td = parentTd(e);
+    const [c2, r2] = extractAddress(td);
+
+    if ((c1 == c2 && r1 == r2) && Date.now() - dragging.current.touchTime < 200) {
 
     } else {
       const f = handler?.setActiveCells;
       if (f && f instanceof Function) {
-        const [c1, r1] = dragging.current.address;
-
-        const td = parentTd(e);
-        const [c2, r2] = extractAddress(td);
         f(c1, r1, c2, r2);
       }
     }
