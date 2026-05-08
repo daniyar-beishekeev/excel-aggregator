@@ -34,7 +34,8 @@ function App() {
     schema,
     changeSchema,
     changeCell,
-    refreshAll
+    refreshAll,
+    getCell
   } = Table();
 
   const applyFiles = (files) => {
@@ -90,16 +91,28 @@ function App() {
         active: false
       })
     });
+    const commonParams = new Map(
+      Object.entries(
+        getCell(utils.encode_col(c1 - 1) + String(r1))?.params ?? {}
+      )
+    );
+    commonParams.delete("userInput");
     for(let r = r1; r <= r2; r++)
       for(let c = c1; c <= c2; c++) {
         const address = utils.encode_col(c - 1) + String(r);
         changeCell(address, {
           active: true
         })
+        const cell = getCell(address);
+        if (!cell) continue;
+        const params = cell.params;
+        for (const [key, value] of commonParams)
+          if (params[key] !== value)
+            commonParams.delete(key);
       }
     activeRange.current = {r1, r2, c1, c2};
     setRangeText(`${utils.encode_col(c1 - 1)}${r1}:${utils.encode_col(c2 - 1)}${r2}`)
-    setForm({});
+    setForm(Object.fromEntries(commonParams));
   }
 
   useEffect(() => {
