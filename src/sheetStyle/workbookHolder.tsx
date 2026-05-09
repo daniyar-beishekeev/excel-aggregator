@@ -16,10 +16,31 @@ import {parseBorder} from "./border.ts";
 
 import './general.css'
 
+type StyleKeys =
+  | 'justifyContent'
+  | 'textAlign'
+  | 'alignItems'
+  | 'writingMode'
+  | 'whiteSpace'
+  | 'overflow'
+  | 'paddingRight'
+  | 'paddingLeft'
+  | 'paddingBottom'
+  | 'paddingTop'
+  | 'minWidth'
+  | 'flexShrink'
+  | 'direction'
+  | 'borderRight'
+  | 'borderLeft'
+  | 'borderBottom'
+  | 'borderTop'
+  | 'backgroundColor'
+type CustomCSS = Pick<CSSProperties, StyleKeys>
+
 export interface CellStyle {
-  readonly tdStyle: CSSProperties;
-  readonly containerStyle: CSSProperties;
-  readonly contentStyle: CSSProperties;
+  readonly tdStyle: CustomCSS;
+  readonly containerStyle: CustomCSS;
+  readonly contentStyle: CustomCSS;
   readonly numFmt?: string | undefined;
 }
 

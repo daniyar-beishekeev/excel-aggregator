@@ -1,5 +1,6 @@
 import {type ReactNode, useRef} from "react";
 import type React from "react";
+import {useGlobal} from "./global/GlobalContext.tsx";
 
 export function SelectableTool({children, handler}: {children: ReactNode, handler: Record<string, any>}) {
   const parentTd = (e: React.MouseEvent<HTMLDivElement>): HTMLElement | null => {
@@ -91,6 +92,7 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
     });
   };
 
+  const {openContextMenu} = useGlobal();
   const onMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 2) return;
     const [c1, r1] = dragging.current.address;
@@ -99,7 +101,10 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
     const [c2, r2] = extractAddress(td);
 
     if ((c1 == c2 && r1 == r2) && Date.now() - dragging.current.touchTime < 200) {
-
+      openContextMenu(e, [
+        {id: '23', label: 'hi'},
+        {id: '2dsa', label: 'you'}
+      ])
     } else {
       const f = handler?.setActiveCells;
       if (f && f instanceof Function) {

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {useGlobal} from "./global/GlobalContext.tsx";
-import {Dropdown, Stack} from "react-bootstrap";
+import {Button, Stack} from "react-bootstrap";
 import {langList} from './global/i18n.ts';
 
 import "./App.css"
@@ -21,7 +21,7 @@ import {Table} from "./Table.tsx";
 import {utils} from "xlsx";
 
 function App() {
-  const {setLang} = useGlobal();
+  const {setLang, contextMenuContent, openContextMenu} = useGlobal();
   const [files, setFiles] = useState([]);
   const activeRange = useRef(null);
   const [rangeText, setRangeText] = useState(null);
@@ -118,7 +118,9 @@ function App() {
       }
     }
     activeRange.current = {r1, r2, c1, c2};
-    setRangeText(`${utils.encode_col(c1 - 1)}${r1}:${utils.encode_col(c2 - 1)}${r2}`)
+    const a = `${utils.encode_col(c1 - 1)}${r1}`;
+    const b = `:${utils.encode_col(c2 - 1)}${r2}`;
+    setRangeText(a + (r1 === r2 && c1 === c2 ? '' : b))
     setForm(Object.fromEntries(commonParams));
   }
 
@@ -135,6 +137,7 @@ function App() {
 
   return (
     <>
+      {contextMenuContent}
       <PrivacyPolicy/>
       <VerticalSplitter root={true} distribution={[10, 90]}>
         <Stack gap={1}>
@@ -145,16 +148,12 @@ function App() {
             </Stack>
             <Stack direction="horizontal" gap={2}>
               {import.meta.env.DEV && <MemoryUsage/>}
-              <Dropdown>
-                <Dropdown.Toggle variant="info" id="dropdown-basic" size={"sm"}>
-                  <i className="bi bi-translate"></i>
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  {Object.entries(langList).map(([key, value]) => (
-                    <Dropdown.Item key={key} onClick={() => setLang(key)}>{value}</Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
+              <Button variant="info" size="sm" onClick={
+                e => openContextMenu(e,
+                  Object.entries(langList).map(([key, value]) => (
+                    { id: key, label: value }
+                  )), item => setLang(item.id))}
+              ><i className="bi bi-translate"/></Button>
               <ManageFiles applyChanges={applyFiles}/>
             </Stack>
           </div>
