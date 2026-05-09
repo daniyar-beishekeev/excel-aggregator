@@ -7,7 +7,7 @@ import {Cell} from "./Cell.tsx";
 type CellDataExtra = {
   values: null | cellValue[];
   params: FormType,
-  active: boolean,
+  active: null | string,
   listeners: Set<() => void>
 };
 export type CellData = Readonly<CellTemplate> & CellDataExtra;
@@ -26,14 +26,17 @@ export function Table() {
   const changeSchema = useCallback((grid: CellTemplate[][], id: string | null, totalCol: number, totalRow: number) => {
     const next: TableData = {};
     for (const row of grid)
-      for (const cell of row)
-        next[cell.address] = {
+      for (const cell of row) {
+        const tmp: CellData = {
           ...cell,
-          values : null,
-          params : {},
-          active : false,
+          values: null,
+          params: {},
+          active: null,
           listeners: new Set(),
         };
+        next[`${cell.c},${cell.r}`] = tmp;
+        next[cell.address] = tmp;
+      }
 
     tableData.current = next;
 

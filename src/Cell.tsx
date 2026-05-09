@@ -31,7 +31,7 @@ export function Cell({address, tableData, version}: {address: string, tableData:
 function cellEvaluator(cell: CellData): JSX.Element | undefined {
   let classes = cell.classList;
   if (cell.active)
-    classes = (classes ?? '') + ' active';
+    classes = (classes ?? '') + cell.active;
   const customContainerStyle:CSSProperties = {...cell.containerStyle};
   const customContentStyle:CSSProperties = {...cell.contentStyle};
   const {w, h} = cell;
@@ -105,7 +105,7 @@ const converters: Record<FormTypeFull['numberAggregatorStrict'], (cell: cellValu
 const round = (n: number): number => Number(n.toFixed(3));
 const numberAggregatorsSingle: Pick<Record<FormTypeFull['numberAggregator'], (n: number[]) => number>, 'sum' | 'sub' | 'avg' | 'min' | 'max'> = {
   sum: (arr) => arr.reduce((acc, val) => acc + val, 0),
-  sub: (arr) => arr.reduce((acc, val) => acc - val, arr[0]!),
+  sub: (arr) => arr.reduce((acc, val) => acc + val, -2 * arr[0]!),
   avg: (arr) => round(arr.reduce((acc, val) => acc + val, 0) / arr.length),
   min: (arr) => Math.min(...arr),
   max: (arr) => Math.max(...arr),

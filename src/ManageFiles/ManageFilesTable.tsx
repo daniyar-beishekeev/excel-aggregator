@@ -186,7 +186,10 @@ export function ManageFilesTable({children, files, setFiles}: ManageFilesProps) 
       () =>
         debounce((value: string) => {
             setFilterQuery(value);
-        }, 500),
+        }, 500, {
+            leading: false,
+            trailing: true
+        }),
       []
     );
     useEffect(() => {
@@ -239,7 +242,7 @@ export function ManageFilesTable({children, files, setFiles}: ManageFilesProps) 
     };
 
     return (
-        <Stack gap={2}>
+        <Stack gap={2} className={"mt-1"}>
             <Row className="align-items-center">
                 <Col className="text-start d-flex gap-2">
                     {children}

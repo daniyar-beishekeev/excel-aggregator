@@ -18,7 +18,6 @@ import {CellParams} from "./CellParams.tsx";
 
 import {extractVals, parseWorksheet} from "./sheetData/parseWorksheet.ts";
 import {Table} from "./Table.tsx";
-
 import {utils} from "xlsx";
 
 function App() {
@@ -72,6 +71,9 @@ function App() {
     refreshAll();
   }
 
+  if (import.meta.env.DEV)
+    window.getCell = getCell;
+
   const setActiveCells = (c1, r1, c2, r2) => {
     if (c1 > c2) [c1, c2] = [c2, c1];
     if (r1 > r2) [r1, r2] = [r2, r1];
@@ -86,30 +88,35 @@ function App() {
     document.querySelectorAll('.active').forEach(el => {
       const r = el.getAttribute('data-r') ?? '0';
       const c = Number(el.getAttribute('data-c') ?? '0');
-      const address = utils.encode_col(c - 1) + r;
-      changeCell(address, {
-        active: false
+      changeCell(`${c},${r}`, {
+        active: null
       })
     });
     const commonParams = new Map(
       Object.entries(
-        getCell(utils.encode_col(c1 - 1) + String(r1))?.params ?? {}
+        getCell(`${c1},${r1}`)?.params ?? {}
       )
     );
     commonParams.delete("userInput");
-    for(let r = r1; r <= r2; r++)
-      for(let c = c1; c <= c2; c++) {
-        const address = utils.encode_col(c - 1) + String(r);
-        changeCell(address, {
-          active: true
-        })
+    for(let r = r1; r <= r2; r++) {
+      const prefix = 'active'
+        + (r === r1 ? ' bt' : '')
+        + (r === r2 ? ' bb' : '')
+      for (let c = c1; c <= c2; c++) {
+        const address = `${c},${r}`;
         const cell = getCell(address);
         if (!cell) continue;
+        changeCell(address, {
+          active: prefix
+            + (c === c1 ? ' bl' : '')
+            + (c === c2 ? ' br' : '')
+        })
         const params = cell.params;
         for (const [key, value] of commonParams)
           if (params[key] !== value)
             commonParams.delete(key);
       }
+    }
     activeRange.current = {r1, r2, c1, c2};
     setRangeText(`${utils.encode_col(c1 - 1)}${r1}:${utils.encode_col(c2 - 1)}${r2}`)
     setForm(Object.fromEntries(commonParams));
@@ -121,8 +128,7 @@ function App() {
       const params = Object.freeze({...form});
       for(let r = r1; r <= r2; r++)
         for(let c = c1; c <= c2; c++) {
-          const address = utils.encode_col(c - 1) + String(r);
-          changeCell(address, {params});
+          changeCell(`${c},${r}`, {params});
         }
     }
   }, [form, changeCell])

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {type InputEvent, useEffect, useState} from "react";
 import {Accordion, Button, Form, Stack} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 
@@ -40,14 +40,16 @@ export function CellParams({sheetNum, form, setForm}: {sheetNum: number, form: F
     id: `cell-param-${name}`,
   });
   const n = <K extends keyof FormType>(name: K) => ({
-    type: 'number',
+    type: 'text',
     placeholder: t(`param.${name}`),
     value: temporaryForm[name] ?? '',
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+      const v = e.target.value.replace(/\D/g, '');
       setTemporaryForm({
         ...temporaryForm,
-        [name]: Number(e.target.value) as FormType[K]
-      }),
+        [name]: (v === '' ? undefined : Number(v)) as FormType[K]
+      })
+    },
     onBlur: () =>
       setForm({
         ...form, userInput: true,
@@ -56,14 +58,19 @@ export function CellParams({sheetNum, form, setForm}: {sheetNum: number, form: F
   })
 
   return (
-    <Accordion defaultActiveKey={['aggregation', 'filter']} alwaysOpen>
+    <Accordion defaultActiveKey={['aggregation']} alwaysOpen>
+      <datalist id="types-list">
+        {['boolean', 'number', 'error', 'string', 'date', 'empty'].map(
+          tp => <option value={t('type.' + tp)} />
+        )}
+      </datalist>
+      <datalist id="showNumber-list">
+        {[1, 3, 5, 10, 20, 50, 100].map(
+          n => <option value={n} />
+        )}
+      </datalist>
       <Accordion.Item eventKey={'filter'}>
         <Accordion.Header>{t('filter')}</Accordion.Header>
-        <datalist id="types-list">
-          {['boolean', 'number', 'error', 'string', 'date', 'empty'].map(
-            tp => <option value={t('type.' + tp)} />
-          )}
-        </datalist>
         <Accordion.Body>
           <Stack gap={2} className="p-2">
             <Form.Control type={'text'} placeholder={'address'}></Form.Control>
@@ -110,7 +117,7 @@ export function CellParams({sheetNum, form, setForm}: {sheetNum: number, form: F
             </Form.Select>}
             {(['diff', 'set', 'freq'].includes(form.generalAggregator ?? '')
                 || ['diffVar', 'diffVarPercent'].includes(form.numberAggregator ?? '') )
-              && <Form.Control min={1} {...n('showLimit')}/>}
+              && <Form.Control list={'showNumber-list'} {...n('showLimit')}/>}
             <Form.Select {...s('numberAggregator')}>
               <option value="" disabled hidden/>
               <option value="none">{t('aggregator.none')}</option>
@@ -135,7 +142,7 @@ export function CellParams({sheetNum, form, setForm}: {sheetNum: number, form: F
             <Form.Check {...b('compactCell')}/>
             <Form.Check {...b('stretchCell')}/>
 
-            <Button onClick={() => setForm({})}>RESET</Button>
+            <Button onClick={() => setForm({})}>{t('reset')}</Button>
           </Stack>
         </Accordion.Body>
       </Accordion.Item>

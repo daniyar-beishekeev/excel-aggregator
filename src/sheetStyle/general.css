@@ -83,5 +83,9 @@
 }
 
 .excel .active {
-    box-shadow: inset 0 0 0 9999px rgba(135, 206, 235, 0.45);
+    box-shadow: inset 0 0 0 9999px rgba(135, 206, 235, 0.7);
 }
+.excel .active.bl {border-left:   2px solid blue !important;}
+.excel .active.br {border-right:  2px solid blue !important;}
+.excel .active.bt {border-top:    2px solid blue !important;}
+.excel .active.bb {border-bottom: 2px solid blue !important;}
