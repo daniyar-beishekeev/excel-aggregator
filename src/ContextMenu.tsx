@@ -191,18 +191,12 @@ export function useContextMenu(): [ReactNode, (e: Pick<MouseEvent, "clientX" | "
       close();
     };
 
-    const handleContextMenu = (e: MouseEvent) => {
-      if (e.timeStamp - openerEvent.current < 10) return;
-      e.preventDefault();
-      close();
-    };
-
     window.addEventListener("click",       handleClose,       { capture: true });
-    window.addEventListener("contextmenu", handleContextMenu, { capture: true });
+    window.addEventListener("contextmenu", handleClose, { capture: true });
 
     return () => {
       window.removeEventListener("click",       handleClose,       { capture: true });
-      window.removeEventListener("contextmenu", handleContextMenu, { capture: true });
+      window.removeEventListener("contextmenu", handleClose, { capture: true });
     };
   }, [state.open, close]);
 

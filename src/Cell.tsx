@@ -36,14 +36,12 @@ function cellEvaluator(cell: CellData): JSX.Element | undefined {
   const customContentStyle:CSSProperties = {...cell.contentStyle};
   const {w, h} = cell;
   if (h && w) {
-    customContainerStyle.height = h;
     if (!cell.params.stretchCell) {
       customContentStyle.maxWidth = w;
     }
-    if (cell.params.compactCell) {
-      customContainerStyle.maxWidth = w;
-    } else {
+    if (!cell.params.compactCell) {
       customContainerStyle.minWidth = w;
+      customContainerStyle.height = h;
     }
   }
   return (

@@ -35,6 +35,7 @@
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.0",
     "react-i18next": "^17.0.4",
+    "react-select": "^5.10.2",
     "react-sortablejs": "^6.1.4",
     "sortablejs": "^1.15.7",
     "ssf": "^0.11.2",

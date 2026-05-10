@@ -166,7 +166,7 @@ function App() {
             {tableElement}
           </SelectableTool>
           <VerticalSplitter distribution={[70, 30]}>
-            <CellParams sheetNum={selectedSheets.length} form={form} setForm={setForm}/>
+            <CellParams activeRange={activeRange} sheetNum={selectedSheets.length} form={form} setForm={setForm}/>
             <pre>{JSON.stringify(form, null, 2)}</pre>
           </VerticalSplitter>
         </HorizontalSplitter>

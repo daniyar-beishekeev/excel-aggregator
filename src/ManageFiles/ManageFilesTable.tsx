@@ -186,10 +186,7 @@ export function ManageFilesTable({children, files, setFiles}: ManageFilesProps) 
       () =>
         debounce((value: string) => {
             setFilterQuery(value);
-        }, 500, {
-            leading: false,
-            trailing: true
-        }),
+        }, 500),
       []
     );
     useEffect(() => {
