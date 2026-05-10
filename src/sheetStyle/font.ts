@@ -1,9 +1,8 @@
-import type {workbookHolder} from "./workbookHolder.tsx";
+import type {AllowedCSS, workbookHolder} from "./workbookHolder.tsx";
 import type ExcelJS from "exceljs";
-import type {CSSProperties} from "react";
 import {parseColor} from "./color.ts";
 
-export function parseFont (wb: workbookHolder, style: CSSProperties, font: Partial<ExcelJS.Font>) {
+export function parseFont (wb: workbookHolder, style: AllowedCSS, font: Partial<ExcelJS.Font>) {
   const f = font;
   if (f.name) style.fontFamily = f.name;
   if (f.size) style.fontSize = `${f.size * 1.3333}px`;

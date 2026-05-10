@@ -29,11 +29,11 @@ export function Cell({address, tableData, version}: {address: string, tableData:
 }
 
 function cellEvaluator(cell: CellData): JSX.Element | undefined {
-  let classes = cell.classList;
+  let classes = (cell.classList ?? '') + ' ' + cell.cssSelector;
   if (cell.active)
-    classes = (classes ?? '') + cell.active;
-  const customContainerStyle:CSSProperties = {...cell.containerStyle};
-  const customContentStyle:CSSProperties = {...cell.contentStyle};
+    classes += ' ' + cell.active;
+  const customContainerStyle:CSSProperties = {};
+  const customContentStyle:CSSProperties = {};
   const {w, h} = cell;
   if (h && w) {
     if (!cell.params.stretchCell) {
@@ -49,7 +49,6 @@ function cellEvaluator(cell: CellData): JSX.Element | undefined {
       data-c={cell.c}
       data-r={cell.r}
       className={classes}
-      style={cell.tdStyle}
       rowSpan={cell.rowSpan}
       colSpan={cell.colSpan}
     >
@@ -200,13 +199,17 @@ function cellEvaluator2(cell: CellData, customContentStyle: Readonly<CSSProperti
       }
     }
     const generalAggregator = cell.params.generalAggregator ?? 'diff';
+    if (!isSame(vals)) {
+      switch (generalAggregator) {
+        case "diff":
+          return diffAggregator(cell, mode, vals, customContentStyle, f, limit);
+        case "freq":
+          return freqAggregator(vals, customContentStyle, f, limit);
+        case "set":
+          return setAggregator(vals, customContentStyle, f, limit);
+      }
+    }
     switch (generalAggregator) {
-      case "diff":
-        return diffAggregator(cell, mode, vals, customContentStyle, f, limit);
-      case "freq":
-        return freqAggregator(vals, customContentStyle, f, limit);
-      case "set":
-        return setAggregator(vals, customContentStyle, f, limit);
       case "countSet":
         return setCountAggregator(vals, customContentStyle);
     }
@@ -223,24 +226,19 @@ type m2cv = [cellValue, cellValue, ...cellValue[]];
 
 function groupDelimiter (delimiter: string) {return <span className={"mx-1"}>{delimiter}</span>}
 function diffAggregator(cell: CellData, mode: FormTypeFull['mode'], vals: m2cv, customContentStyle: Readonly<CSSProperties>, f: formatter, limit: number): JSX.Element {
-  if (!isSame(vals)) {
-    return (
-      <>
-        {vals.map((v, idx) =>
-          (idx < limit && <>
-            {idx > 0 && groupDelimiter('↣')}
-            <div
-              className={'cell-content'}
-              style={{...customContentStyle, backgroundColor: backgroundColor(idx)}}
-            >{f(v.v)}</div>
-          </>)
-        )}
-        {vals.length >= limit && groupDelimiter('...')}
-      </>
-    )
-  }
   return (
-    <div className={'cell-content'} style={customContentStyle}>{mode === 'v' ? cell.htmlContent : f(vals[0].v)}</div>
+    <>
+      {vals.map((v, idx) =>
+        (idx < limit && <>
+          {idx > 0 && groupDelimiter('↣')}
+          <div
+            className={'cell-content'}
+            style={{...customContentStyle, backgroundColor: backgroundColor(idx)}}
+          >{f(v.v)}</div>
+        </>)
+      )}
+      {vals.length >= limit && groupDelimiter('...')}
+    </>
   )
 }
 

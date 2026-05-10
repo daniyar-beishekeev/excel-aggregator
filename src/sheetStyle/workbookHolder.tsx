@@ -16,7 +16,7 @@ import {parseBorder} from "./border.ts";
 
 import './general.css'
 
-type StyleKeys =
+export type AllowedCSSKeys =
   | 'justifyContent'
   | 'textAlign'
   | 'alignItems'
@@ -35,12 +35,19 @@ type StyleKeys =
   | 'borderBottom'
   | 'borderTop'
   | 'backgroundColor'
-type CustomCSS = Pick<CSSProperties, StyleKeys>
+  | 'border'
+  | 'color'
+  | 'fontFamily'
+  | 'fontSize'
+  | 'fontWeight'
+  | 'fontStyle'
+  | 'textDecoration'
+export type AllowedCSS = Pick<CSSProperties, AllowedCSSKeys>
 
 export interface CellStyle {
-  readonly tdStyle: CustomCSS;
-  readonly containerStyle: CustomCSS;
-  readonly contentStyle: CustomCSS;
+  readonly tdStyle: AllowedCSS;
+  readonly containerStyle: AllowedCSS;
+  readonly contentStyle: AllowedCSS;
   readonly numFmt?: string | undefined;
 }
 

@@ -65,7 +65,7 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
         group: file.file.name,
         groupId: file.id,
         name: sheet,
-      })).filter(item => item.name.toLowerCase().includes(q)),
+      })).filter(item => item.name.toLowerCase().includes(q) || item.group.toLowerCase().includes(q)),
     })).filter(group => group.children.length > 0);
     setFiltered(result);
   }, [files, filterQuery]);

@@ -1,9 +1,8 @@
-import type {CellStyle, workbookHolder} from "./workbookHolder.tsx";
+import type {AllowedCSS, CellStyle, workbookHolder} from "./workbookHolder.tsx";
 import type ExcelJS from "exceljs";
-import type {CSSProperties} from "react";
 import {parseColor} from "./color.ts";
 
-function borderMapStyle(xmlName: string | undefined): NonNullable<CSSProperties['border']> {
+function borderMapStyle(xmlName: string | undefined): NonNullable<AllowedCSS['border']> {
   switch (xmlName) {
     case "thin":
     case "hair":

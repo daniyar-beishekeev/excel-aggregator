@@ -27,8 +27,10 @@
     white-space: pre;
 }
 
-.excel .cell-container:hover {
-    z-index: 9;
+.excel .cell-container:hover,
+.excel .cell-container:hover .cell-content
+{
+    z-index: 99999;
     overflow: visible;
 }
 
@@ -57,9 +59,12 @@
 .excel .rowHeader .cell-container {
     overflow: visible;
     font-weight: bold;
-    justify-content: center;
     align-items: center;
     padding: 0 3px;
+}
+
+.excel .columnHeader .cell-container {
+    justify-content: center;
 }
 
 .excel .columnHeader .cell-content,

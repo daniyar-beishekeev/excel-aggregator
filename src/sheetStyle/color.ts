@@ -1,10 +1,9 @@
 import type ExcelJS from "exceljs";
-import type {CSSProperties} from "react";
 import {applyTint, indexedColors} from "./indexedColors.ts";
-import type {workbookHolder} from "./workbookHolder.tsx";
+import type {AllowedCSS, workbookHolder} from "./workbookHolder.tsx";
 
-export function parseColor (wb: workbookHolder, obj: Partial<ExcelJS.Color> | undefined, context: 'font' | 'border' | 'fill' = 'font'): NonNullable<CSSProperties['color']> {
-  const def: CSSProperties['color'] = '#000';
+export function parseColor (wb: workbookHolder, obj: Partial<ExcelJS.Color> | undefined, context: 'font' | 'border' | 'fill' = 'font'): NonNullable<AllowedCSS['color']> {
+  const def: AllowedCSS['color'] = '#000';
   if (!obj) return def;
   if (obj.argb && typeof obj.argb === 'string') {
     const hex = obj.argb.padStart(8, 'F');
