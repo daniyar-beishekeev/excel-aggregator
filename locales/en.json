@@ -6,6 +6,8 @@
   "apply": "Apply",
   "manage_files": "Manage Files",
   "fileFilter": "File Filter",
+  "filter": "Filter",
+  "exclude": "Exclude",
   "aggregation": "Aggregation",
   "mode": "Mode",
   "value": "Value",
