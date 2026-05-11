@@ -1,135 +1,195 @@
-import {useCallback, useEffect, useMemo, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
+import {useGlobal} from "./global/GlobalContext.tsx";
+import {Button, Stack} from "react-bootstrap";
+import {langList} from './global/i18n.ts';
+
 import "./App.css"
-import ManageFiles from "./ManageFiles.jsx";
-import LoadingOverlay from "./LoadingOverlay.jsx";
-import {workbookHolder} from "./workbookHolder.jsx";
-import {BasicTable} from "./BasicTable.jsx";
-import {backgroundColor} from "./DiffCell.jsx";
-import {BasicCell} from "./BasicCell.jsx";
-import {Dropdown, Stack} from "react-bootstrap";
-import {CellEvaluatorParameters} from "./CellEvaluatorParameters.jsx";
-import {WbSheetsMap} from "./WbSheetsMap.jsx";
-import {PrivacyPolicy} from "./PrivacyPolicy.jsx";
-import {Workbook} from "exceljs";
-import {useTranslation} from "react-i18next";
-import i18n from './i18n';
-import persistentState from "./persistentState.js";
-import {MemoryUsage} from "./MemoryUsage.jsx";
+import {MemoryUsage} from "./utils/MemoryUsage.tsx";
+
+import {ManageFiles} from "./ManageFiles/ManageFiles.tsx";
+import {PrivacyPolicy} from "./global/PrivacyPolicy.tsx";
+import {SelectSheets} from "./SelectSheets/SelectSheets.tsx";
+
+import {renderItem} from "./SelectSheets/SelectSheets.tsx";
+import {createWorkbookHolder} from "./sheetStyle/workbookHolder.tsx";
+import {SelectableTool} from "./SelectableTool.tsx";
+import {HorizontalSplitter, VerticalSplitter} from "./layout/ScreenDivider.tsx";
+import {CellParams} from "./CellParams.tsx";
+
+import {extractVals, parseWorksheet} from "./sheetData/parseWorksheet.ts";
+import {Table} from "./Table.tsx";
+import {utils} from "xlsx";
+import {debounce} from "lodash";
 
 function App() {
-  const {t} = useTranslation();
-  const [lang, setLang] = persistentState("lang", "ru");
-  useEffect(() => {
-    i18n.changeLanguage(lang);
-  }, [lang]);
-  /** @type {import('exceljs').Workbook[]} */
-  const [wbs, setWbs] = useState([]);
-  const [wsList, setWsList] = useState([]);
-  const [curWs, setCurWs] = useState("none");
-  const [loading, setLoading] = useState(false);
+  const {setLang, contextMenuContent, openContextMenu} = useGlobal();
+  const [files, setFiles] = useState([]);
+  const [activeRange, setActiveRange] = useState(null);
+  const [form, setForm] = useState({});
+  const [filters, setFilters] = useState([]);
+  const [selectedSheets, setSelectedSheets] = useState([]);
 
-  const applyFiles = useCallback(async (files) => {
-    setLoading(true);
-    setCurWs("none");
-    if (files.length === 0) {
-      setWsList([]);
-      setLoading(false);
-      setWbs([]);
+  const {
+    tableElement,
+    schema,
+    changeSchema,
+    changeCell,
+    refreshAll,
+    getCell,
+    applyFilters
+  } = Table();
+
+  const applyFiles = (files) => {
+    setFiles(files);
+  }
+  const applySheets = async (sheets) => {
+    setActiveRange(null);
+    setFilters([]);
+    setSelectedSheets(sheets);
+    if (sheets.length === 0) {
+      changeSchema([], null, 0, 0);
       return;
     }
+    const sheet = sheets[0];
+    const id = sheet.groupId + '!' + sheet.name;
+    let grid = schema.grid;
 
-    const cache = Object.fromEntries(wbs.map(wb => [wb.id, wb]));
-    const newWbs = await Promise.all(files.map(file => (file.id in cache) ? Promise.resolve(cache[file.id]) : workbookHolder.create(file)));
-    setWbs(newWbs);
-    const wbHandler = newWbs[0];
-    setWsList(wbHandler.wb.worksheets.map(ws => [wbHandler.id, ws.name, ws.id]));
-    setLoading(false);
-  }, [wbs]);
+    if (id !== schema.id) {
+      const file = files.find(file => file.id === sheet.groupId);
+      if (file) {
+        const wbHolder = await createWorkbookHolder(file);
+        grid = wbHolder.getGridTemplate(sheet.name);
+        const {totalRow, totalCol} = wbHolder.worksheetSize(sheet.name);
+        changeSchema(grid, id, totalCol, totalRow);
+      }
+    }
+    const wss = await Promise.all(sheets.map(sheet => parseWorksheet(files.find(file => file.id === sheet.groupId), sheet.name)));
+    for (const row of grid)
+      for (const cell of row) {
+        changeCell(cell.address, {
+          values: extractVals(wss, cell.address),
+          params: {},
+        }, false);
+      }
+    setFilterMap(files.map(() => true));
+    refreshAll();
+  }
 
-  const ws = useMemo(() => {
-    if (!wbs?.length || !curWs || curWs === "none") return null;
-    return wbs[0].wb.getWorksheet(JSON.parse(curWs)[1]);
-  }, [wbs, curWs]);
-
-  const wss = useMemo(() => {
-    if (!ws) return [];
-    const emptyWs = new Workbook().addWorksheet(`(${t('Empty')})`)
-    return wbs.slice(1).map(wbHolder => (wbHolder.wb.getWorksheet(ws.name) ?? emptyWs));
-  }, [wbs, ws]);
-
-  const [cellParams, setCellParams] = useState(null);
-  const cellEvaluator = useCallback(
-    (cell, props) => (
-      <BasicCell
-        cell={cell}
-        wbHolder={wbs[0]}
-        wss={wss}
-        cellParams={cellParams}
-        props={props}/>
-    ),
-    [wbs, wss, cellParams]
-  );
-
-  const table = useMemo(() => {
-    if (!ws) return null;
-
-    if (import.meta.env.DEV) console.log('LAST WS', ws);
-
-    return (
-      <BasicTable
-        key={curWs}
-        ws={ws}
-        wbHolder={wbs[0]}
-        cellEvaluator={cellEvaluator}
-      />
+  const setActiveCells = (c1, r1, c2, r2) => {
+    if (c1 > c2) [c1, c2] = [c2, c1];
+    if (r1 > r2) [r1, r2] = [r2, r1];
+    if (r1 === -1) {
+      r1 = 1;
+      r2 = schema.totalRow;
+    }
+    if (c1 === -1) {
+      c1 = 1;
+      c2 = schema.totalCol;
+    }
+    document.querySelectorAll('.active').forEach(el => {
+      const r = el.getAttribute('data-r') ?? '0';
+      const c = Number(el.getAttribute('data-c') ?? '0');
+      changeCell(`${c},${r}`, {
+        active: null
+      })
+    });
+    const commonParams = new Map(
+      Object.entries(
+        getCell(`${c1},${r1}`)?.params ?? {}
+      )
     );
-  }, [curWs, ws, wbs, cellEvaluator]);
+    commonParams.delete("userInput");
+    for(let r = r1; r <= r2; r++) {
+      const prefix = 'active'
+        + (r === r1 ? ' bt' : '')
+        + (r === r2 ? ' bb' : '')
+      for (let c = c1; c <= c2; c++) {
+        const address = `${c},${r}`;
+        const cell = getCell(address);
+        if (!cell) continue;
+        changeCell(address, {
+          active: prefix
+            + (c === c1 ? ' bl' : '')
+            + (c === c2 ? ' br' : '')
+        })
+        const params = cell.params;
+        for (const [key, value] of commonParams)
+          if (params[key] !== value)
+            commonParams.delete(key);
+      }
+    }
+    setActiveRange({r1, r2, c1, c2});
+    setForm(Object.fromEntries(commonParams));
+  }
+
+  useEffect(() => {
+    if (activeRange && form.userInput) {
+      const {c1, c2, r1, r2} = activeRange;
+      const params = Object.freeze({...form});
+      for(let r = r1; r <= r2; r++)
+        for(let c = c1; c <= c2; c++) {
+          changeCell(`${c},${r}`, {params});
+        }
+    }
+  }, [form, changeCell]);
+
+  const [filterMap, setFilterMap] = useState([]);
+  const debouncedApplyFilters = useMemo(() =>
+      debounce((filters) => {
+        setFilterMap(applyFilters(filters, selectedSheets.length));
+      }, 300)
+  ,[applyFilters, selectedSheets]);
+
+
+  useEffect(() => {
+    debouncedApplyFilters(filters);
+    return () => {
+      debouncedApplyFilters.cancel();
+    };
+  }, [filters, debouncedApplyFilters]);
+
+  const activeRangeText = useMemo(() => {
+    if (!activeRange) return null;
+    const {r1, r2, c1, c2} = activeRange;
+    const a = `${utils.encode_col(c1 - 1)}${r1}`;
+    const b = `:${utils.encode_col(c2 - 1)}${r2}`;
+    return a + (r1 === r2 && c1 === c2 ? '' : b);
+  }, [activeRange]);
 
   return (
-    <div className="d-flex flex-column vh-100">
+    <>
+      {contextMenuContent}
       <PrivacyPolicy/>
-      <LoadingOverlay visible={loading} />
-      <header className="py-2 px-1 position-fixed top-0 start-0 w-100" style={{ zIndex: 12}}>
+      <VerticalSplitter root={true} distribution={[10, 90]}>
         <Stack gap={1}>
-          <div style={{display: "flex", justifyContent: "space-between"}}>
+          <div className="p-1" style={{display: "flex", justifyContent: "space-between"}}>
             <Stack direction={"horizontal"} gap={1}>
-              <b>{t('Sheet')}: </b>
-              <select value={curWs} onChange={e => setCurWs(e.target.value)}>
-                <option value={"none"}>*{t('Select sheet')}</option>
-                {wsList.map(ws => (
-                  <option key={ws} value={JSON.stringify([ws[0], ws[2]])}>{ws[1]}</option>
-                ))}
-              </select>
-              {wbs && wbs.length > 0 && (<WbSheetsMap wbs={wbs}/>)}
+              <SelectSheets files={files} applySheets={applySheets}/>
+              <b>{activeRangeText}</b>
             </Stack>
             <Stack direction="horizontal" gap={2}>
-              {import.meta.env.DEV && <MemoryUsage/>}
-              <Dropdown>
-                <Dropdown.Toggle variant="info" id="dropdown-basic" size={"sm"}>
-                  <i className="bi bi-translate"></i>
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu>
-                  {['en', 'ru'].map(ln => <Dropdown.Item key={ln} onClick={() => setLang(ln)}>{ln}</Dropdown.Item>)}
-                </Dropdown.Menu>
-              </Dropdown>
-              <CellEvaluatorParameters applyChanges={setCellParams}/>
+              <MemoryUsage/>
+              <Button variant="info" size="sm" onClick={
+                e => openContextMenu(e,
+                  Object.entries(langList).map(([key, value]) => (
+                    { id: key, label: value }
+                  )), item => setLang(item.id))}
+              ><i className="bi bi-translate"/></Button>
               <ManageFiles applyChanges={applyFiles}/>
             </Stack>
           </div>
-          {wbs && (<div style={{display: 'flex', gap: 5, overflow: 'auto', backgroundColor: '#eee'}}>
-            {wbs.map((ws, idx) => (
-              <b key={ws.id} style={{backgroundColor: backgroundColor(idx)}}>
-                {ws.fileName}
-              </b>
-            ))}
-          </div>)}
+          <Stack direction={"horizontal"} gap={3} className={"px-3"} style={{overflowX: 'auto', backgroundColor: '#eee'}}>
+            {selectedSheets.filter((v, idx) => filterMap[idx]).map(renderItem)}
+          </Stack>
         </Stack>
-      </header>
-      <main className="flex-grow-1 overflow-auto" style={{ marginTop: "80px" }}>
-        {table}
-      </main>
-    </div>
+        <HorizontalSplitter distribution={[80, 20]}>
+          <SelectableTool handler={{setActiveCells}}>
+            {tableElement}
+          </SelectableTool>
+          <CellParams applyFilters={setFilters} activeRangeText={activeRangeText} sheetNum={selectedSheets.length} form={form} setForm={setForm}/>
+        </HorizontalSplitter>
+      </VerticalSplitter>
+    </>
   );
 }
 

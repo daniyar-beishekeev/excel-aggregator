@@ -17,6 +17,13 @@
     position: relative;
 }
 
+/* DEFAULT FONT */
+.comment-popup span{
+    font-family: Calibri, Arial, sans-serif;
+    font-size: 14px;
+    color: #000000;
+}
+
 .comment-popup {
     display: none;
     min-width: 11em;

@@ -1,0 +1,24 @@
+.sheet-select-modal {
+    max-width: 90vw !important;
+    width: 90vw;
+}
+
+.sheet-select-modal .modal-content {
+    height: 90vh;
+}
+
+.sheet-select-modal .modal-body {
+    overflow: hidden;
+    padding-top: 0;
+    flex: 1;
+    margin-top: var(--bs-modal-padding);
+}
+
+.sheet-select-modal .row {
+    height: 100%;
+}
+
+.sheet-select-modal .col {
+    overflow: auto;
+    height: 100%;
+}

@@ -2,9 +2,10 @@ import {Button, Modal} from "react-bootstrap";
 import React, {useCallback, useEffect, useState} from "react";
 import {Form} from "@formio/react";
 import parameterForm from "./parameterForm.json";
-import persistentState from "./persistentState.js";
+import {useLocalStorage} from "./utils/persistentState.ts";
 import {useTranslation} from "react-i18next";
-import i18n from "./i18n.js";
+import i18n from "./global/i18n.ts";
+import './css_cdn/formio.full.css';
 
 const buildFormioI18n = () => {
   const lang = i18n.language;
@@ -17,7 +18,7 @@ const buildFormioI18n = () => {
 export function CellEvaluatorParameters({applyChanges}) {
   const {t} = useTranslation();
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = persistentState("parameters", {});
+  const [formData, setFormData] = useLocalStorage("parameters", {});
   const [draftData, setDraftData] = useState(formData);
   useEffect(() => {
     applyChanges(formData);

@@ -1,9 +1,9 @@
 import React, {useState} from "react";
 import {Button, Modal} from "react-bootstrap";
-import persistentState from "./persistentState.js";
+import {useLocalStorage} from "../utils/persistentState.ts";
 import {useTranslation} from "react-i18next";
 
-const policy = `
+const policy: string = `
   <div>
   <p><strong>Политика конфиденциальности</strong></p>
   <p><strong>Дата вступления в силу:</strong> 25 апреля 2026 г.</p>
@@ -23,12 +23,12 @@ const policy = `
   <h3>6. Изменения в настоящей Политике</h3>
   <p>Мы можем время от времени обновлять настоящую Политику конфиденциальности. Любые изменения будут отражены на этой странице с обновленной датой вступления в силу.</p>
   <h3>7. Контакты</h3>
-  <p>Если у вас есть какие-либо вопросы по поводу настоящей Политики конфиденциальности, а также предложения по оптимизации данного проекта, вы можете связаться с нами по адресу: juggernaut@unist.ac.kr</p>
+  <p>Если у вас есть какие-либо вопросы по поводу настоящей Политики конфиденциальности, а также предложения по оптимизации данного проекта, вы можете связаться с нами по адресу: @daniyar_beishekeev</p>
   <p>С уважением, Данияр</p>
   </div>
 `;
 
-async function hashPolicy(policyText) {
+async function hashPolicy(policyText: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(policyText);
 
@@ -40,10 +40,10 @@ async function hashPolicy(policyText) {
 
 export function PrivacyPolicy() {
   const {t} = useTranslation();
-  const [hash, setHash] = useState(null);
-  const [acceptedHash, setAcceptedHash] = persistentState("privacyPolicy", '');
+  const [hash, setHash] = useState<string>('');
+  const [acceptedHash, setAcceptedHash] = useLocalStorage<string>("privacyPolicy", '');
   hashPolicy(policy).then(setHash);
-  return hash && hash !== acceptedHash &&(
+  return hash !== '' && hash !== acceptedHash &&(
     <>
       <Modal show={true} dialogClassName="modal-xl">
         <Modal.Body>
