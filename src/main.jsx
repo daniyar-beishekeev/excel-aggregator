@@ -7,6 +7,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 import { GlobalProvider } from "./global/GlobalContext.tsx";
 
 console.log('Build time', __BUILD_TIME__)
+window.__BUILD_TIME__ = __BUILD_TIME__
 
 const meta = {
   "salt": [119,102,201,53,62,41,51,32,250,78,237,244,192,153,239,12],

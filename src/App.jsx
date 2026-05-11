@@ -12,12 +12,12 @@ import {SelectSheets} from "./SelectSheets/SelectSheets.tsx";
 
 import {renderItem} from "./SelectSheets/SelectSheets.tsx";
 import {createWorkbookHolder} from "./sheetStyle/workbookHolder.tsx";
-import {SelectableTool} from "./SelectableTool.tsx";
+import {SelectableTool} from "./sheetData/plugins/SelectableTool.tsx";
 import {HorizontalSplitter, VerticalSplitter} from "./layout/ScreenDivider.tsx";
-import {CellParams} from "./CellParams.tsx";
+import {CellParams} from "./sheetData/plugins/CellParams.tsx";
 
 import {extractVals, parseWorksheet} from "./sheetData/parseWorksheet.ts";
-import {Table} from "./Table.tsx";
+import {Table} from "./sheetData/Table.tsx";
 import {utils} from "xlsx";
 import {debounce} from "lodash";
 

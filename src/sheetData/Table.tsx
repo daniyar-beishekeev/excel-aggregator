@@ -1,9 +1,9 @@
 import React, {type JSX, useCallback, useMemo, useRef, useState} from "react";
-import type {CellTemplate} from "./sheetStyle/workbookHolder.tsx";
-import type {cellValue} from "./sheetData/parseWorksheet.ts";
-import type {FilterInstance, FormType} from "./CellParams.tsx";
+import type {CellTemplate} from "../sheetStyle/workbookHolder.tsx";
+import type {cellValue} from "./parseWorksheet.ts";
+import type {FilterInstance, FormType} from "./plugins/CellParams.tsx";
 import {Cell} from "./Cell.tsx";
-import {cssPropertiesToString} from "./cssConverter.ts"
+import {cssPropertiesToString} from "../utils/cssConverter.ts"
 
 type CellDataExtra = {
   values: null | cellValue[];
@@ -129,7 +129,6 @@ export function Table() {
     const filterMap = Array.from({length: maxLen}).map((v, idx) => !badIdx.has(idx));
     tableParams.current.filterMap = filterMap;
     setVersion(v => v + 1);
-    console.log('filterMap', filterMap);
     return filterMap;
   }, []);
 

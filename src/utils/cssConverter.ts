@@ -1,4 +1,4 @@
-import type {AllowedCSSKeys, CellStyle} from "./sheetStyle/workbookHolder.tsx";
+import type {AllowedCSSKeys, CellStyle} from "../sheetStyle/workbookHolder.tsx";
 import type {CSSProperties} from "react";
 
 const PROPERTY_MAP: Record<AllowedCSSKeys, string> = {

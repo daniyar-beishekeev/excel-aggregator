@@ -5,10 +5,10 @@ import {format} from "ssf";
 import type {CellData, TableData, TableParams} from "./Table.tsx";
 
 //@ts-expect-error
-import {backgroundColor} from "./DiffCell.jsx";
-import type {cellValue} from "./sheetData/parseWorksheet.ts";
-import {isSame} from "./sheetData/diff.ts";
-import type {FormTypeFull} from "./CellParams.tsx";
+import {backgroundColor} from "../DiffCell.jsx";
+import type {cellValue} from "./parseWorksheet.ts";
+import {isSame} from "./diff.ts";
+import type {FormTypeFull} from "./plugins/CellParams.tsx";
 
 export function Cell({address, tableData, version, tableParams}: {address: string, tableData: React.RefObject<TableData>, tableParams: React.RefObject<TableParams>, version: number}): JSX.Element | undefined {
   //console.log('Rendering', address);

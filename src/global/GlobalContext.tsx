@@ -1,7 +1,7 @@
 import {createContext, type ReactNode, useContext, useEffect} from "react";
 import {useLocalStorage} from "../utils/persistentState.ts";
 import i18n from "i18next";
-import {type MenuCallback, type MenuEntry, useContextMenu} from "../ContextMenu.tsx";
+import {type MenuCallback, type MenuEntry, useContextMenu} from "./ContextMenu.tsx";
 
 type GlobalContextType = {
     lang: string;
