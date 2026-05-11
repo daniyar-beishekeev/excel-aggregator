@@ -19,6 +19,7 @@
     "countSet": "Count Unique",
     "set": "Unique",
     "sum": "Sum",
+    "sub": "Subtract",
     "avg": "Average",
     "min": "Min",
     "max": "Max",

@@ -27,9 +27,7 @@
     white-space: pre;
 }
 
-.excel .cell-container:hover,
-.excel .cell-container:hover .cell-content
-{
+.excel .cell-container:hover{
     z-index: 99999;
     overflow: visible;
 }
@@ -41,9 +39,9 @@
     background: white;
 }*/
 
-/*.excel tr:hover td:not(.rowHeader) {
-    background-color: #eee !important;
-}*/
+.excel tr:hover td:not(.rowHeader) {
+    box-shadow: inset 0 0 0 9999px rgba(238, 238, 238, 1);
+}
 
 /* Styles for both */
 .excel td.columnHeader,
@@ -88,7 +86,7 @@
 }
 
 .excel .active {
-    box-shadow: inset 0 0 0 9999px rgba(135, 206, 235, 0.7);
+    box-shadow: inset 0 0 0 9999px rgba(135, 206, 235, 0.7) !important;
 }
 .excel .active.bl {border-left:   2px solid blue !important;}
 .excel .active.br {border-right:  2px solid blue !important;}
