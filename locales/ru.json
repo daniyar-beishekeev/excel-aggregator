@@ -50,5 +50,7 @@
   "Mark Formula Errors": "Отмечать ошибки формул",
   "Show Comments": "Показывать комментарии",
   "Highlight Missing Values": "Подсвечивать пропущенные значения",
-  "Wrap formula": "Обернуть формулу"
+  "Wrap formula": "Обернуть формулу",
+
+  "name": "Имя"
 }
