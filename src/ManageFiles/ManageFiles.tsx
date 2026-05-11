@@ -69,28 +69,28 @@ export function ManageFiles({ applyChanges }: {applyChanges: (a: FileHolder[]) =
     fileAdd(selected);
   };
 
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    if (!sampleFilesAdd) return;
-    sampleFilesAdd = false;
-    Promise.all(
-        Object.keys(import.meta.glob('/public/*'))
-            .map(_ => import.meta.env.BASE_URL + _.slice(7))
-            .filter(_ => _.endsWith('.xlsx'))
-            .map(async (url, index) => {
-          const response = await fetch(url);
-          const blob = await response.blob();
-
-          const fileName = url.split('/').pop() || `file-${index}`;
-
-          return new File([blob], fileName, { type: blob.type });
-        })
-    ).then(fileAdd);
-  }, []);
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    if (files.every(file => file.status === 'ready')) applyFiles();
-  }, [files]);
+  // useEffect(() => {
+  //   if (!import.meta.env.DEV) return;
+  //   if (!sampleFilesAdd) return;
+  //   sampleFilesAdd = false;
+  //   Promise.all(
+  //       Object.keys(import.meta.glob('/public/*'))
+  //           .map(_ => import.meta.env.BASE_URL + _.slice(7))
+  //           .filter(_ => _.endsWith('.xlsx'))
+  //           .map(async (url, index) => {
+  //         const response = await fetch(url);
+  //         const blob = await response.blob();
+  //
+  //         const fileName = url.split('/').pop() || `file-${index}`;
+  //
+  //         return new File([blob], fileName, { type: blob.type });
+  //       })
+  //   ).then(fileAdd);
+  // }, []);
+  // useEffect(() => {
+  //   if (!import.meta.env.DEV) return;
+  //   if (files.every(file => file.status === 'ready')) applyFiles();
+  // }, [files]);
 
   return (
     <>

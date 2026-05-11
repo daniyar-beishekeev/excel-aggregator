@@ -72,18 +72,18 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
 
   const [right, setRight] = useState<EntityType['children']>([]);
   useEffect(() => {
-    if(import.meta.env.DEV) {
-      if (files.length > 0)
-        applySheets(files.map(file => {
-          const res: EntityType['children'][number] = {
-            id: crypto.randomUUID(),
-            group: file.file.name,
-            groupId: file.id,
-            name: file.sheetNames[2]!,
-          };
-          return res;
-        }));
-    }
+    // if(import.meta.env.DEV) {
+    //   if (files.length > 0)
+    //     applySheets(files.map(file => {
+    //       const res: EntityType['children'][number] = {
+    //         id: crypto.randomUUID(),
+    //         group: file.file.name,
+    //         groupId: file.id,
+    //         name: file.sheetNames[2]!,
+    //       };
+    //       return res;
+    //     }));
+    // }
     const fileIds = new Set(files.map(file => file.id));
     const res = right.filter(sheet => fileIds.has(sheet.groupId));
     if (res.length !== right.length) {

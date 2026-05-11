@@ -2,7 +2,7 @@ const SAFE_LIMITER = 5;
 
 import React, {type CSSProperties, type JSX, useEffect, useState} from "react";
 import {format} from "ssf";
-import type {CellData, TableData} from "./Table.tsx";
+import type {CellData, TableData, TableParams} from "./Table.tsx";
 
 //@ts-expect-error
 import {backgroundColor} from "./DiffCell.jsx";
@@ -10,7 +10,7 @@ import type {cellValue} from "./sheetData/parseWorksheet.ts";
 import {isSame} from "./sheetData/diff.ts";
 import type {FormTypeFull} from "./CellParams.tsx";
 
-export function Cell({address, tableData, version}: {address: string, tableData: React.RefObject<TableData>, version: number}): JSX.Element | undefined {
+export function Cell({address, tableData, version, tableParams}: {address: string, tableData: React.RefObject<TableData>, tableParams: React.RefObject<TableParams>, version: number}): JSX.Element | undefined {
   //console.log('Rendering', address);
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -25,10 +25,10 @@ export function Cell({address, tableData, version}: {address: string, tableData:
   }, [tableData, address, version]);
   const cell = tableData.current[address];
   if (!cell) return;
-  return cellEvaluator(cell);
+  return cellEvaluator(cell, tableParams);
 }
 
-function cellEvaluator(cell: CellData): JSX.Element | undefined {
+function cellEvaluator(cell: CellData, tableParams: React.RefObject<TableParams>): JSX.Element | undefined {
   let classes = (cell.classList ?? '') + ' ' + cell.cssSelector;
   if (cell.active)
     classes += ' ' + cell.active;
@@ -52,7 +52,7 @@ function cellEvaluator(cell: CellData): JSX.Element | undefined {
       rowSpan={cell.rowSpan}
       colSpan={cell.colSpan}
     >
-      <div className={'cell-container'} style={customContainerStyle}>{cellEvaluator2(cell, customContentStyle)}</div>
+      <div className={'cell-container'} style={customContainerStyle}>{cellEvaluator2(cell, customContentStyle, tableParams)}</div>
       <div className={"tag-container"}>{cell.comment}</div>
     </td>
   );
@@ -113,16 +113,22 @@ const numberAggregatorsMulti: Pick<Record<FormTypeFull['numberAggregator'], (n: 
 };
 
 type formatter = (x: any) => any;
-function cellEvaluator2(cell: CellData, customContentStyle: Readonly<CSSProperties>): JSX.Element | undefined {
+function cellEvaluator2(cell: CellData, customContentStyle: Readonly<CSSProperties>, tableParams: React.RefObject<TableParams>): JSX.Element | undefined {
   //NOTE: React key define error here
   const mode = cell.params.mode ?? 'v';
-  const {numFmt, values} = cell;
+  const {numFmt, values: unfilteredValues} = cell;
   const f =
     cell.params.formatNumber && numFmt
       ? (x: any) => format(numFmt, x)
       : (x: any) => x;
   const limit = cell.params.showLimit || SAFE_LIMITER;
-  if (values && values.length > 1) {
+
+  let values = unfilteredValues;
+  const {filterMap} = tableParams.current;
+  const filterAvailable = !!(unfilteredValues && filterMap && unfilteredValues.length === filterMap.length);
+  if (filterAvailable)
+    values = unfilteredValues.filter((v, idx) => filterMap[idx]);
+  if (values && values.length > 0) {
     //@ts-expect-error
     const vals: m2cv =
       mode === 'v' ? values :
@@ -213,6 +219,18 @@ function cellEvaluator2(cell: CellData, customContentStyle: Readonly<CSSProperti
       case "countSet":
         return setCountAggregator(vals, customContentStyle);
     }
+  }
+  if (filterAvailable && values) {
+    if (values.length === 0) return <div className={'cell-content'} style={customContentStyle}></div>
+    const candidates = [values[0]!, unfilteredValues[0]!];
+    //@ts-expect-error
+    const vals: m2cv =
+      mode === 'v' ? candidates :
+        mode === 't' ? candidates.map(v => ({t: 's', v: v.t}))
+          : candidates.map(v => ({t: 's', v: (v.f ? '=' + v.f : '')}));
+    if (!isSame(vals)) return (
+      <div className={'cell-content'} style={customContentStyle}>{f(vals[0].v)}</div>
+    )
   }
   return (
     <div className={'cell-content'} style={customContentStyle}>{cell.htmlContent}</div>

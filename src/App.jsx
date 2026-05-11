@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {useGlobal} from "./global/GlobalContext.tsx";
 import {Button, Stack} from "react-bootstrap";
 import {langList} from './global/i18n.ts';
@@ -19,13 +19,14 @@ import {CellParams} from "./CellParams.tsx";
 import {extractVals, parseWorksheet} from "./sheetData/parseWorksheet.ts";
 import {Table} from "./Table.tsx";
 import {utils} from "xlsx";
+import {debounce} from "lodash";
 
 function App() {
   const {setLang, contextMenuContent, openContextMenu} = useGlobal();
   const [files, setFiles] = useState([]);
-  const activeRange = useRef(null);
-  const [rangeText, setRangeText] = useState(null);
+  const [activeRange, setActiveRange] = useState(null);
   const [form, setForm] = useState({});
+  const [filters, setFilters] = useState([]);
   const [selectedSheets, setSelectedSheets] = useState([]);
 
   const {
@@ -34,14 +35,16 @@ function App() {
     changeSchema,
     changeCell,
     refreshAll,
-    getCell
+    getCell,
+    applyFilters
   } = Table();
 
   const applyFiles = (files) => {
     setFiles(files);
   }
   const applySheets = async (sheets) => {
-    activeRange.current = null;
+    setActiveRange(null);
+    setFilters([]);
     setSelectedSheets(sheets);
     if (sheets.length === 0) {
       changeSchema([], null, 0, 0);
@@ -70,9 +73,6 @@ function App() {
       }
     refreshAll();
   }
-
-  if (import.meta.env.DEV)
-    window.getCell = getCell;
 
   const setActiveCells = (c1, r1, c2, r2) => {
     if (c1 > c2) [c1, c2] = [c2, c1];
@@ -117,23 +117,42 @@ function App() {
             commonParams.delete(key);
       }
     }
-    activeRange.current = {r1, r2, c1, c2};
-    const a = `${utils.encode_col(c1 - 1)}${r1}`;
-    const b = `:${utils.encode_col(c2 - 1)}${r2}`;
-    setRangeText(a + (r1 === r2 && c1 === c2 ? '' : b))
+    setActiveRange({r1, r2, c1, c2});
     setForm(Object.fromEntries(commonParams));
   }
 
   useEffect(() => {
-    if (activeRange.current && form.userInput) {
-      const {c1, c2, r1, r2} = activeRange.current;
+    if (activeRange && form.userInput) {
+      const {c1, c2, r1, r2} = activeRange;
       const params = Object.freeze({...form});
       for(let r = r1; r <= r2; r++)
         for(let c = c1; c <= c2; c++) {
           changeCell(`${c},${r}`, {params});
         }
     }
-  }, [form, changeCell])
+  }, [form, changeCell]);
+
+  const debouncedApplyFilters = useMemo(() =>
+      debounce((filters) => {
+        applyFilters(filters);
+      }, 300)
+  ,[applyFilters]);
+
+
+  useEffect(() => {
+    debouncedApplyFilters(filters);
+    return () => {
+      debouncedApplyFilters.cancel();
+    };
+  }, [filters, debouncedApplyFilters]);
+
+  const activeRangeText = useMemo(() => {
+    if (!activeRange) return null;
+    const {r1, r2, c1, c2} = activeRange;
+    const a = `${utils.encode_col(c1 - 1)}${r1}`;
+    const b = `:${utils.encode_col(c2 - 1)}${r2}`;
+    return a + (r1 === r2 && c1 === c2 ? '' : b);
+  }, [activeRange]);
 
   return (
     <>
@@ -141,13 +160,13 @@ function App() {
       <PrivacyPolicy/>
       <VerticalSplitter root={true} distribution={[10, 90]}>
         <Stack gap={1}>
-          <div style={{display: "flex", justifyContent: "space-between"}}>
+          <div className="p-1" style={{display: "flex", justifyContent: "space-between"}}>
             <Stack direction={"horizontal"} gap={1}>
               <SelectSheets files={files} applySheets={applySheets}/>
-              <b>{rangeText}</b>
+              <b>{activeRangeText}</b>
             </Stack>
             <Stack direction="horizontal" gap={2}>
-              {import.meta.env.DEV && <MemoryUsage/>}
+              <MemoryUsage/>
               <Button variant="info" size="sm" onClick={
                 e => openContextMenu(e,
                   Object.entries(langList).map(([key, value]) => (
@@ -165,10 +184,7 @@ function App() {
           <SelectableTool handler={{setActiveCells}}>
             {tableElement}
           </SelectableTool>
-          <VerticalSplitter distribution={[70, 30]}>
-            <CellParams activeRange={activeRange} sheetNum={selectedSheets.length} form={form} setForm={setForm}/>
-            <pre>{JSON.stringify(form, null, 2)}</pre>
-          </VerticalSplitter>
+          <CellParams applyFilters={setFilters} activeRangeText={activeRangeText} sheetNum={selectedSheets.length} form={form} setForm={setForm}/>
         </HorizontalSplitter>
       </VerticalSplitter>
     </>

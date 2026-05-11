@@ -1,103 +1,74 @@
-import React, {useEffect, useState} from "react";
-import {Accordion, Button, Form, ListGroup, Stack} from "react-bootstrap";
+import React, {useCallback, useEffect, useState} from "react";
+import {Accordion, Alert, Button, Form, ListGroup, Stack} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
-import AsyncCreatableSelect from "react-select/async";
 
-type FilterModes = 'value' | 'formula' | 'type' | 'filename' | 'sheet'
-type Operators = 'eq' | 'neq' | 'le' | 'leq' | 'gr' | 'grq' | 'Empty' | 'NEmpty' | 'SWith' | 'NSWith' | 'EWith' | 'NEWith' | 'Contain' | 'NContain' | 'Inc' | 'NInc';
-const operator2types: Record<Operators, FilterModes[]> = {
-  eq:       ["value", "formula",         "filename", "sheet"],
-  neq:      ["value", "formula",         "filename", "sheet"],
-  le:       ["value"],
-  leq:      ["value"],
-  gr:       ["value"],
-  grq:      ["value"],
-  Empty:    ["value", "formula"],
-  NEmpty:   ["value", "formula"],
-  SWith:    ["value",                    "filename", "sheet"],
-  NSWith:   ["value",                    "filename", "sheet"],
-  EWith:    ["value",                    "filename", "sheet"],
-  NEWith:   ["value",                    "filename", "sheet"],
-  Contain:  ["value", "formula",         "filename", "sheet"],
-  NContain: ["value", "formula",         "filename", "sheet"],
-  Inc:      ["value",            "type", "filename", "sheet"],
-  NInc:     ["value",            "type", "filename", "sheet"],
+const operators: string[] = ['eq', 'neq', 'le', 'leq', 'gr', 'grq', 'Empty', 'NEmpty', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain'];
+type Operators = typeof operators[number];
+export interface FilterInstance {
+  enabled: boolean;
+  valid: boolean;
+  address: string;
+  operator: Operators;
+  operatorArg: string;
 }
 
 function isValidFilter(filter: Record<string, any>): boolean {
-  const { mode, address, operator, operatorArg, operatorItems } = filter;
-  if (!mode || mode === '') return false;
-  if (['value', 'formula', 'type'].includes(mode) && (!address || address === '')) return false;
+  const { address, operator, operatorArg, operatorItems } = filter;
+  if (!address || address === '') return false;
   if (!operator || operator === '') return false;
-  if (['eq', 'neq', 'le', 'leq', 'gr', 'grq', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain'].includes(operator) && operatorArg == null) return false;
-  if (['Inc', 'NInc'].includes(operator) && (!operatorItems || operatorItems.length === 0)) return false;
+  if (['le', 'leq', 'gr', 'grq', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain'].includes(operator) && (!operatorArg || operatorArg === '')) return false;
+  if (['le', 'leq', 'gr', 'grq'].includes(operator) && isNaN(operatorArg)) return false;
   return true;
 }
 
-function Filter() {
+function Filter({filter, setFilter, onDelete, activeRangeText}:
+                {filter: Partial<FilterInstance>, setFilter: (nf: Partial<FilterInstance>) => void, onDelete: () => void, activeRangeText: string | null}) {
   const { t } = useTranslation();
-  const [filter, setFilter] = useState<Partial<{
-    enabled: boolean;
-    mode: FilterModes;
-    address: string;
-    operator: Operators;
-    operatorArg: string;
-    operatorItems: string[];
-  }>>({});
-  const [valid, setValid] = useState(false);
+  const setFilterPre = useCallback((f: Partial<FilterInstance>) => {
+    setFilter({
+      ...f,
+      valid: isValidFilter(f)
+    });
+  }, [setFilter]);
 
+  const [focused, setFocused] = useState<boolean>(false);
   useEffect(() => {
-    setValid(isValidFilter(filter));
-  }, [filter]);
+    if (!focused) return;
+    setFilterPre({
+      ...filter,
+      address: (activeRangeText ?? '').split(':')[0]!
+    })
+  }, [activeRangeText]);
 
   return (
-    <ListGroup.Item className={!filter.enabled ? "bg-secondary" : valid ? "bg-info-subtle" : "bg-danger-subtle"}>
+    <ListGroup.Item className={!filter.enabled ? "bg-secondary" : filter.valid ? "bg-info-subtle" : "bg-danger-subtle"}>
       <Stack gap={2}>
         <Stack direction="horizontal" gap={1}>
-          <Form.Check checked={filter.enabled ?? false} onChange={e => setFilter({ ...filter, enabled: e.target.checked })} />
-          <Form.Select size="sm" value={filter.mode ?? ''} onChange={e => setFilter({ ...filter, mode: e.target.value as FilterModes })}>
-            <option value="" disabled hidden>*{t('mode')}</option>
-            {['value', 'formula', 'type', 'filename', 'sheet'].map(tp => <option key={tp} value={tp}>{t(tp)}</option>)}
-          </Form.Select>
-          {filter.mode && ['value', 'formula', 'type'].includes(filter.mode) && (
-            <Form.Control
-              value={filter.address ?? ''}
-              onChange={e => setFilter({ ...filter, address: e.target.value })}
-              size="sm"
-              placeholder={`*${t('address')}`}
-            />
-          )}
+          <Form.Check checked={filter.enabled ?? false} onChange={e => setFilterPre({ ...filter, enabled: e.target.checked })} />
+          <Form.Control
+            value={filter.address ?? ''}
+            size="sm"
+            placeholder={`*${t('address')}`}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+          />
           <Form.Select value={filter.operator ?? ''} size="sm" onChange={e => {
-            const { operatorArg, operatorItems, ...rest } = filter;
-            setFilter({ ...rest, operator: e.target.value as Operators });
+            const { operatorArg, ...rest } = filter;
+            setFilterPre({ ...rest, operator: e.target.value as Operators });
           }}>
             <option value="" disabled hidden>*{t('operator')}</option>
-            {Object.entries(operator2types)
-              .filter(([, value]) => value.includes(filter.mode!))
-              .map(([key,]) =>
-                <option key={key} value={key}>{t('op.' + key)}</option>)
-            }
+            {operators.map(key => <option key={key} value={key}>{t('op.' + key)}</option>)}
           </Form.Select>
         </Stack>
         <Stack direction="horizontal" gap={1}>
           {filter.operator && ['eq', 'neq', 'le', 'leq', 'gr', 'grq', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain'].includes(filter.operator)
-            && <Form.Control value={filter.operatorArg ?? ''} onChange={e => setFilter({ ...filter, operatorArg: e.target.value })} size="sm" type="text" />
-          }
-          {filter.operator && ['Inc', 'NInc'].includes(filter.operator)
-            && <div className="flex-grow-1">
-              {/*@ts-expect-error*/}
-              <AsyncCreatableSelect isMulti cacheOptions defaultOptions loadOptions={
-                filter.mode === 'type' ? async () => ['b', 'n', 'e', 's', 'd', 'z']
-                    .map(tp => ({ value: tp, label: t('type.' + tp) }))
-                  : async () => []
-              } value={filter.operatorItems ?? []} onChange={v => setFilter({ ...filter, operatorItems: (v ?? []) as string[] })} />
-            </div>
+            && <Form.Control value={filter.operatorArg ?? ''} onChange={e => setFilterPre({ ...filter, operatorArg: e.target.value })} size="sm" type="text" />
           }
           <Button
             variant="outline-danger"
             className="ms-auto"
             size="sm"
-            onClick={() => console.log("remove filter")}
+            onClick={() => onDelete()}
           ><i className="bi bi-trash" /></Button>
         </Stack>
       </Stack>
@@ -118,15 +89,22 @@ export type FormTypeFull = {
   userInput: boolean;
 }
 export type FormType = Partial<FormTypeFull>;
-export function CellParams({sheetNum, form, setForm, activeRange}: {
-  sheetNum: number, activeRange: React.RefObject<{c1: number, c2: number, r1: number, r2: number}>
-  form: FormType, setForm: React.Dispatch<React.SetStateAction<FormType>>
+export function CellParams({sheetNum, form, setForm, activeRangeText, applyFilters}: {
+  sheetNum: number, activeRangeText: string | null
+  form: FormType, setForm: React.Dispatch<React.SetStateAction<FormType>>,
+  applyFilters: (nf: Partial<FilterInstance>[]) => void
 }) {
   const {t} = useTranslation();
+  const [filters, setFilters] = useState<Partial<FilterInstance>[]>([]);
   const [temporaryForm, setTemporaryForm] = useState<FormType>({});
   useEffect(() => {
     setTemporaryForm(form);
   }, [form]);
+  useEffect(() => {
+    const tmp = filters.filter(f => f.enabled)
+    if (tmp.every(f => f.valid))
+      applyFilters(tmp);
+  }, [filters, applyFilters]);
   const s = <K extends keyof FormType>(name: K) => ({
     value: form[name] ?? '',
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) =>
@@ -164,7 +142,7 @@ export function CellParams({sheetNum, form, setForm, activeRange}: {
   })
 
   return (
-    <Accordion defaultActiveKey={['aggregation', 'fileFilter']} alwaysOpen>
+    <Accordion defaultActiveKey={['aggregation']} alwaysOpen>
       <datalist id="showNumber-list">
         {[1, 3, 5, 10, 20, 50, 100].map(
           n => <option value={n} />
@@ -175,12 +153,19 @@ export function CellParams({sheetNum, form, setForm, activeRange}: {
         <Accordion.Body className="p-2">
           <Stack gap={2}>
             <ListGroup>
-              <Filter/>
+              {filters.map((filter, idx) => (<Filter filter={filter} setFilter={
+                nf => setFilters(filters.map((f, i) => (i === idx ? nf : f)))
+              } key={idx} onDelete={
+                () => setFilters(filters.filter((_, i) => i !== idx))
+              } activeRangeText={activeRangeText}/>))}
             </ListGroup>
+            {filters.some(filter => filter.enabled && !filter.valid)
+              && <Alert variant="danger">{t('invalidFilter')}</Alert>
+            }
             <Button
               variant="info"
               size="sm"
-              onClick={() => console.log(activeRange.current)}
+              onClick={() => setFilters(filters.concat([{address: (activeRangeText ?? '').split(':')[0]!}]))}
             ><i className="bi bi-plus-lg" /></Button>
           </Stack>
         </Accordion.Body>
