@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import {type CSSProperties, type JSX} from "react";
 import * as XLSX from "xlsx";
+import JSZip from 'jszip';
 
 import type {FileHolder} from "../ManageFiles/FileHolder.ts";
 import {CellTag} from "./CellTag.tsx";
@@ -81,8 +82,28 @@ export async function createWorkbookHolder (file: FileHolder): Promise<workbookH
       { bookType: "xlsx", type: "array" }
     );
 
+  // Strip broken table XML that causes filterButton crash
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const tableFiles = Object.keys(zip.files).filter(f => f.match(/^xl\/tables\/.+\.xml$/));
+  tableFiles.forEach(f => zip.remove(f));
+
+  // Remove table relationships to avoid dangling refs
+  const relFiles = Object.keys(zip.files).filter(f => f.match(/xl\/worksheets\/_rels\/.+\.rels$/));
+  for (const relPath of relFiles) {
+    const content = await zip.files[relPath]!.async('string');
+    const cleaned = content.replace(/<Relationship[^>]*Type="[^"]*table[^"]*"[^>]*\/>/g, '');
+    zip.file(relPath, cleaned);
+  }
+
+  const cleanedBuffer = await zip.generateAsync({ type: 'arraybuffer' });
+
   const wb: ExcelJS.Workbook = new ExcelJS.Workbook();
-  await wb.xlsx.load(arrayBuffer);
+  await wb.xlsx.load(cleanedBuffer, {
+    ignoreNodes: [
+      'tableParts',
+      'autoFilter'
+    ]
+  });
   return new workbookHolder(wb, file.id);
 }
 
