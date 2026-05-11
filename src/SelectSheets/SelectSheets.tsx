@@ -114,7 +114,7 @@ export function SelectSheets({files, applySheets}: {files: FileHolder[], applySh
                   />
                   <Button
                     variant={"outline-success"}
-                    className={"btn-sm"}
+                    className={"btn-sm text-nowrap"}
                     onClick={() => {if(confirm(t('insert_filtered'))){
                       setRight(prev =>
                         prev.concat(filtered.map(

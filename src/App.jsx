@@ -71,6 +71,7 @@ function App() {
           params: {},
         }, false);
       }
+    setFilterMap(files.map(() => true));
     refreshAll();
   }
 
@@ -132,11 +133,12 @@ function App() {
     }
   }, [form, changeCell]);
 
+  const [filterMap, setFilterMap] = useState([]);
   const debouncedApplyFilters = useMemo(() =>
       debounce((filters) => {
-        applyFilters(filters);
+        setFilterMap(applyFilters(filters, selectedSheets.length));
       }, 300)
-  ,[applyFilters]);
+  ,[applyFilters, selectedSheets]);
 
 
   useEffect(() => {
@@ -177,7 +179,7 @@ function App() {
             </Stack>
           </div>
           <Stack direction={"horizontal"} gap={3} className={"px-3"} style={{overflowX: 'auto', backgroundColor: '#eee'}}>
-            {selectedSheets.map(renderItem)}
+            {selectedSheets.filter((v, idx) => filterMap[idx]).map(renderItem)}
           </Stack>
         </Stack>
         <HorizontalSplitter distribution={[80, 20]}>

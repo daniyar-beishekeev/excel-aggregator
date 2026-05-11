@@ -89,8 +89,8 @@ export function Table() {
     return tableData.current[address];
   }, []);
 
-  const applyFilters = useCallback((filters: Partial<FilterInstance>[]) => {
-    let maxLen = 0;
+  const applyFilters = useCallback((filters: Partial<FilterInstance>[], assumingLen: number) => {
+    let maxLen = assumingLen ?? 0;
     const badIdx = new Set<number>();
     for(const filter of filters) {
       const {address, operator, operatorArg} = filter;
@@ -126,8 +126,11 @@ export function Table() {
         })
       }
     }
-    tableParams.current.filterMap = Array.from({length: maxLen}).map((v, idx) => !badIdx.has(idx));
+    const filterMap = Array.from({length: maxLen}).map((v, idx) => !badIdx.has(idx));
+    tableParams.current.filterMap = filterMap;
     setVersion(v => v + 1);
+    console.log('filterMap', filterMap);
+    return filterMap;
   }, []);
 
   const tableElement = useMemo<JSX.Element>(() => (
