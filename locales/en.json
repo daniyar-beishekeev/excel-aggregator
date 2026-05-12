@@ -10,6 +10,7 @@
   "exclude": "Exclude",
   "fileList": "Files list",
   "sheetMap": "Sheets map",
+  "empties": "Empties",
   "aggregation": "Aggregation",
   "mode": "Mode",
   "value": "Value",
