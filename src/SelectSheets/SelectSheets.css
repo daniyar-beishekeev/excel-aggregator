@@ -22,3 +22,20 @@
     overflow: auto;
     height: 100%;
 }
+
+.sheetMapTable {
+    border-collapse: collapse;
+}
+.sheetMapTable thead {
+    position: sticky;
+    top: 0;
+}
+.sheetMapTable th {
+    background-color: white;
+}
+
+.sheetMapTable td,
+.sheetMapTable th {
+    padding: 0 5px;
+    border: 1px solid black;
+}

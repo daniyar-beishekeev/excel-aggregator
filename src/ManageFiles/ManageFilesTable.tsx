@@ -1,5 +1,5 @@
 import type {FileHolder} from "./FileHolder.ts";
-import {Button, ButtonGroup, Col, Dropdown, DropdownButton, Form, Row, Stack} from "react-bootstrap";
+import {Button, ButtonGroup, Col, Dropdown, DropdownButton, Form, Row, Stack, Tab, Tabs} from "react-bootstrap";
 import React, {useState, useMemo, useEffect} from "react";
 import {useTranslation} from "react-i18next";
 import {useLocalStorage} from "../utils/persistentState.ts";
@@ -238,6 +238,29 @@ export function ManageFilesTable({children, files, setFiles}: ManageFilesProps) 
         setSelected(new Set());
     };
 
+    const sheetMap = useMemo(() => {
+        const files = (sortDir === 'asc' ? sorted : sorted.reverse());
+        const sheets = [...new Set(files.flatMap(file => file.sheetNames))];
+        return (
+          <table className="sheetMapTable">
+              <thead>
+                <tr>
+                    <th/>
+                    {sheets.map(sheet => <th>{sheet}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {files.map(file => (
+                  <tr>
+                      <td>{file.file.name}</td>
+                      {sheets.map(sheet => <td className={file.sheetNames.includes(sheet) ? 'bg-success-subtle' : 'bg-danger'}/>)}
+                  </tr>
+                ))}
+              </tbody>
+          </table>
+        )
+    }, [sorted, sortDir]);
+
     return (
         <Stack gap={2} className={"mt-1"}>
             <Row className="align-items-center">
@@ -309,53 +332,63 @@ export function ManageFilesTable({children, files, setFiles}: ManageFilesProps) 
                     </ButtonGroup>
                 </Col>
             </Row>
-            <table className="table table-sm table-hover">
-                <thead style={{position: 'sticky', top: 0}}>
-                <tr>
-                    <th>
-                        <input
-                            type="checkbox"
-                            checked={
-                                filtered.length > 0 &&
-                                filtered.every(r => selected.has(r.id))
-                            }
-                            onChange={() => toggleAll(filtered)}
-                        />
-                    </th>
+            <Tabs
+              defaultActiveKey="fileList"
+              className="mb-3"
+            >
+                <Tab eventKey="fileList" title={t('fileList')}>
+                    <table className="table table-sm table-hover">
+                        <thead style={{position: 'sticky', top: 0}}>
+                        <tr>
+                            <th>
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    filtered.length > 0 &&
+                                    filtered.every(r => selected.has(r.id))
+                                  }
+                                  onChange={() => toggleAll(filtered)}
+                                />
+                            </th>
 
-                    {visibleColumns.map(col => (
-                        <th
-                            key={col.column}
-                            style={{ cursor: 'pointer', userSelect: 'none' }}
-                            onClick={() => toggleSort(col.column)}
-                        >
-                            {t(col.column)}
-                            {sortKey === col.column ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
-                        </th>
-                    ))}
-                </tr>
-                </thead>
+                            {visibleColumns.map(col => (
+                              <th
+                                key={col.column}
+                                style={{ cursor: 'pointer', userSelect: 'none' }}
+                                onClick={() => toggleSort(col.column)}
+                              >
+                                  {t(col.column)}
+                                  {sortKey === col.column ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                              </th>
+                            ))}
+                        </tr>
+                        </thead>
 
-                <tbody>
-                {(sortDir === 'asc' ? sorted : sorted.reverse()).map(row => (
-                    <tr key={row.id}>
-                        <td>
-                            <input
-                                type="checkbox"
-                                checked={selected.has(row.id)}
-                                onChange={() => toggleRow(row.id)}
-                            />
-                        </td>
+                        <tbody>
+                        {(sortDir === 'asc' ? sorted : sorted.reverse()).map(row => (
+                          <tr key={row.id}>
+                              <td>
+                                  <input
+                                    type="checkbox"
+                                    checked={selected.has(row.id)}
+                                    onChange={() => toggleRow(row.id)}
+                                  />
+                              </td>
 
-                        {visibleColumns.map(col => (
-                            <td key={col.column}>
-                                {col.format({row, lang})}
-                            </td>
+                              {visibleColumns.map(col => (
+                                <td key={col.column}>
+                                    {col.format({row, lang})}
+                                </td>
+                              ))}
+                          </tr>
                         ))}
-                    </tr>
-                ))}
-                </tbody>
-            </table>
+                        </tbody>
+                    </table>
+                </Tab>
+                <Tab eventKey={"sheetMap"} title={t('sheetMap')}>
+                    {sheetMap}
+                </Tab>
+            </Tabs>
         </Stack>
     );
 }

@@ -7,6 +7,11 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
     while (el && el.tagName !== "TD") el = el.parentElement;
     return el;
   }
+  const parentCellContent = (e: React.MouseEvent<HTMLDivElement>): HTMLElement | null => {
+    let el = e.target as HTMLElement | null;
+    while (el && !el.classList.contains('cell-content')) el = el.parentElement;
+    return el;
+  }
   const extractAddress = (el: HTMLElement | null): [number, number] => {
     if (!el) return [0, 0];
     return [
@@ -99,6 +104,12 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
     const [c2, r2] = extractAddress(td);
 
     if ((c1 == c2 && r1 == r2) && Date.now() - dragging.current.touchTime < 200) {
+      const cellContent = parentCellContent(e);
+      const dataIdx = cellContent ? Number(cellContent.getAttribute('data-idx')) : null;
+      const f = handler?.showCellOptions;
+      if (dataIdx != null && f && f instanceof Function) {
+        f(dataIdx, c1, r1, e);
+      }
     } else {
       const f = handler?.setActiveCells;
       if (f && f instanceof Function) {

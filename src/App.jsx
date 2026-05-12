@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import {useGlobal} from "./global/GlobalContext.tsx";
 import {Button, Stack} from "react-bootstrap";
 import {langList} from './global/i18n.ts';
@@ -20,8 +20,10 @@ import {extractVals, parseWorksheet} from "./sheetData/parseWorksheet.ts";
 import {Table} from "./sheetData/Table.tsx";
 import {utils} from "xlsx";
 import {debounce} from "lodash";
+import {useTranslation} from "react-i18next";
 
 function App() {
+  const {t} = useTranslation();
   const {setLang, contextMenuContent, openContextMenu} = useGlobal();
   const [files, setFiles] = useState([]);
   const [activeRange, setActiveRange] = useState(null);
@@ -136,7 +138,9 @@ function App() {
   const [filterMap, setFilterMap] = useState([]);
   const debouncedApplyFilters = useMemo(() =>
       debounce((filters) => {
-        setFilterMap(applyFilters(filters, selectedSheets.length));
+        const tmp = filters.filter(f => f.enabled)
+        if (tmp.every(f => f.valid))
+          setFilterMap(applyFilters(tmp, selectedSheets.length));
       }, 300)
   ,[applyFilters, selectedSheets]);
 
@@ -155,6 +159,37 @@ function App() {
     const b = `:${utils.encode_col(c2 - 1)}${r2}`;
     return a + (r1 === r2 && c1 === c2 ? '' : b);
   }, [activeRange]);
+
+  const showCellOptions = (idx, c1, r1, e) => {
+    const address = `${utils.encode_col(c1 - 1)}${r1}`;
+    const cell = getCell(address);
+    if (!cell) return;
+    const vals = cell.values;
+    if (!vals || idx >= vals.length) return;
+    const val = vals[idx];
+    const addFilter = (filter) => {
+      setFilters(filters.concat([filter]));
+    }
+    if (val.t === 'z') {
+      openContextMenu(e, [
+        {id: 'filter_empty', label: t('filter') + ': ' + t('Empty')},
+        {id: 'filter_exclude_empty', label: t('exclude') + ': ' + t('Empty')},
+      ], item => {
+        if (item.id === 'filter_empty' || item.id === 'filter_exclude_empty') {
+          addFilter({enabled: true, valid: true, address, operator: item.id === 'filter_empty' ? 'Empty' : 'NEmpty'});
+        }
+      })
+    } else {
+      openContextMenu(e, [
+        {id: 'filter_add', label: t('filter') + ': ' + String(val.v)},
+        {id: 'filter_exclude', label: t('exclude') + ': ' + String(val.v)},
+      ], item => {
+        if (item.id === 'filter_add' || item.id === 'filter_exclude') {
+          addFilter({enabled: true, valid: true, address, operator: item.id === 'filter_add' ? 'eq' : 'neq', operatorArg: String(val.v)});
+        }
+      })
+    }
+  };
 
   return (
     <>
@@ -183,10 +218,10 @@ function App() {
           </Stack>
         </Stack>
         <HorizontalSplitter distribution={[80, 20]}>
-          <SelectableTool handler={{setActiveCells}}>
+          <SelectableTool handler={{showCellOptions, setActiveCells}}>
             {tableElement}
           </SelectableTool>
-          <CellParams applyFilters={setFilters} activeRangeText={activeRangeText} sheetNum={selectedSheets.length} form={form} setForm={setForm}/>
+          <CellParams filters={filters} setFilters={setFilters} activeRangeText={activeRangeText} sheetNum={selectedSheets.length} form={form} setForm={setForm}/>
         </HorizontalSplitter>
       </VerticalSplitter>
     </>

@@ -106,10 +106,10 @@ export function Table() {
           if (op === 'NEmpty') return (v) => v.t !== 'z';
           const arg2Num = Number(arg2);
           const arg2Str = String(arg2);
-          if (op === 'le')  return (v) => typeof v.v !== 'number' || v.v <  arg2Num;
-          if (op === 'leq') return (v) => typeof v.v !== 'number' || v.v <= arg2Num;
-          if (op === 'gr')  return (v) => typeof v.v !== 'number' || v.v >  arg2Num;
-          if (op === 'grq') return (v) => typeof v.v !== 'number' || v.v >= arg2Num;
+          if (op === 'le')  return (v) => isNaN(v.v as number ?? 0) || Number(v.v ?? 0) <  arg2Num;
+          if (op === 'leq') return (v) => isNaN(v.v as number ?? 0) || Number(v.v ?? 0) <= arg2Num;
+          if (op === 'gr')  return (v) => isNaN(v.v as number ?? 0) || Number(v.v ?? 0) >  arg2Num;
+          if (op === 'grq') return (v) => isNaN(v.v as number ?? 0) || Number(v.v ?? 0) >= arg2Num;
           if (op === 'eq')  return (v) => String(v.v) === arg2Str;
           if (op === 'neq') return (v) => String(v.v) !== arg2Str;
           if (op === 'SWith')  return (v) =>  String(v.v).startsWith(arg2Str);

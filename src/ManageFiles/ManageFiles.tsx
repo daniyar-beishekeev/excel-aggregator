@@ -8,7 +8,7 @@ import type {FileHolder} from "./FileHolder.ts";
 import {ManageFilesTable} from "./ManageFilesTable.tsx";
 
 let file_descriptor = 1;
-const limit = pLimit(128);
+const limit = pLimit(32);
 let sampleFilesAdd = true;
 
 export function ManageFiles({ applyChanges }: {applyChanges: (a: FileHolder[]) => void}) {

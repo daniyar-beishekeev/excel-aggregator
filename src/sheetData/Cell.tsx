@@ -251,6 +251,7 @@ function diffAggregator(cell: CellData, mode: FormTypeFull['mode'], vals: m2cv, 
           {idx > 0 && groupDelimiter('↣')}
           <div
             className={'cell-content'}
+            data-idx={idx}
             style={{...customContentStyle, backgroundColor: backgroundColor(idx)}}
           >{f(v.v)}</div>
         </>)
@@ -268,8 +269,14 @@ function frequencyList(arr: cellValue[]): [cellValue['v'], number][] {
   }
   return Array.from(map).sort((a, b) => b[1] - a[1]);
 }
+function valueMapper(vals: cellValue[]) {
+  return new Map(
+    vals.map((value, index) => [value.v, index])
+  );
+}
 function freqAggregator(vals: m2cv, customContentStyle: Readonly<CSSProperties>, f: formatter, limit: number): JSX.Element {
   const freqList = frequencyList(vals);
+  const idxMap = valueMapper(vals);
   return (
     <>
       {groupDelimiter('*')}
@@ -278,6 +285,7 @@ function freqAggregator(vals: m2cv, customContentStyle: Readonly<CSSProperties>,
           {idx > 0 && groupDelimiter(', ')}
           <div
             className={'cell-content'}
+            data-idx={idxMap.get(v)}
             style={{...customContentStyle, backgroundColor: backgroundColor(idx)}}
           >{f(v)}→{cnt}</div>
         </>)
@@ -289,6 +297,7 @@ function freqAggregator(vals: m2cv, customContentStyle: Readonly<CSSProperties>,
 
 function setAggregator(vals: m2cv, customContentStyle: Readonly<CSSProperties>, f: formatter, limit: number): JSX.Element {
   const st = [...new Set(vals.map(v => v.v))];
+  const idxMap = valueMapper(vals);
   return (
     <>
       {groupDelimiter('{')}
@@ -297,6 +306,7 @@ function setAggregator(vals: m2cv, customContentStyle: Readonly<CSSProperties>, 
           {idx > 0 && groupDelimiter(', ')}
           <div
             className={'cell-content'}
+            data-idx={idxMap.get(v)}
             style={{...customContentStyle, backgroundColor: backgroundColor(idx)}}
           >{f(v)}</div>
         </>)

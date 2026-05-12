@@ -89,22 +89,17 @@ export type FormTypeFull = {
   userInput: boolean;
 }
 export type FormType = Partial<FormTypeFull>;
-export function CellParams({sheetNum, form, setForm, activeRangeText, applyFilters}: {
+export function CellParams({sheetNum, form, setForm, activeRangeText, filters, setFilters}: {
   sheetNum: number, activeRangeText: string | null
   form: FormType, setForm: React.Dispatch<React.SetStateAction<FormType>>,
-  applyFilters: (nf: Partial<FilterInstance>[]) => void
+  filters: Partial<FilterInstance>[],
+  setFilters: React.Dispatch<React.SetStateAction<Partial<FilterInstance>[]>>
 }) {
   const {t} = useTranslation();
-  const [filters, setFilters] = useState<Partial<FilterInstance>[]>([]);
   const [temporaryForm, setTemporaryForm] = useState<FormType>({});
   useEffect(() => {
     setTemporaryForm(form);
   }, [form]);
-  useEffect(() => {
-    const tmp = filters.filter(f => f.enabled)
-    if (tmp.every(f => f.valid))
-      applyFilters(tmp);
-  }, [filters, applyFilters]);
   const s = <K extends keyof FormType>(name: K) => ({
     value: form[name] ?? '',
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) =>

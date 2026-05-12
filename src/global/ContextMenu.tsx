@@ -18,7 +18,7 @@ function MenuPanel({ items, position, onClose, onAction, depth = 0 }: {
   items:    MenuEntry[];
   position: { x: number; y: number };
   onClose:  () => void;
-  onAction: MenuCallback | null;
+  onAction: MenuCallback;
   depth?:   number;
 }) {
   const ref = useRef<HTMLUListElement>(null);
@@ -174,9 +174,8 @@ export function useContextMenu(): [ReactNode, (e: Pick<MouseEvent, "clientX" | "
     x:     number;
     y:     number;
     items: MenuEntry[];
-    cb:    MenuCallback | null;
   }>({
-    open: false, x: 0, y: 0, items: [], cb: null,
+    open: false, x: 0, y: 0, items: [],
   });
 
   const openerEvent = useRef<number>(0);
@@ -188,6 +187,7 @@ export function useContextMenu(): [ReactNode, (e: Pick<MouseEvent, "clientX" | "
 
     const handleClose = (e: MouseEvent) => {
       if (e.timeStamp - openerEvent.current < 10) return;
+      if (menuRef.current?.contains(e.target as Node)) return;
       close();
     };
 
@@ -200,6 +200,8 @@ export function useContextMenu(): [ReactNode, (e: Pick<MouseEvent, "clientX" | "
     };
   }, [state.open, close]);
 
+  const cbRef = useRef<MenuCallback | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const openContextMenu = useCallback(
     (
       event:     Pick<MouseEvent, "clientX" | "clientY">,
@@ -207,18 +209,21 @@ export function useContextMenu(): [ReactNode, (e: Pick<MouseEvent, "clientX" | "
       callback?: MenuCallback,
     ) => {
       openerEvent.current = (event as MouseEvent).timeStamp ?? 0;
-      setState({ open: true, x: event.clientX, y: event.clientY, items: menuItems, cb: callback ?? null });
+      cbRef.current = callback ?? null;
+      setState({ open: true, x: event.clientX, y: event.clientY, items: menuItems});
     },
     [],
   );
 
   const content: ReactNode = state.open ? (
-    <MenuPanel
-      items={state.items}
-      position={{ x: state.x, y: state.y }}
-      onClose={close}
-      onAction={state.cb}
-    />
+      <div ref={menuRef}>
+        <MenuPanel
+          items={state.items}
+          position={{ x: state.x, y: state.y }}
+          onClose={close}
+          onAction={(item) => cbRef.current?.(item)}
+        />
+      </div>
   ) : null;
 
   return [content, openContextMenu];
