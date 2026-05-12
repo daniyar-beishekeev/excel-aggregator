@@ -1,6 +1,6 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {useGlobal} from "./global/GlobalContext.tsx";
-import {Button, Stack} from "react-bootstrap";
+import {Button, ButtonGroup, Stack} from "react-bootstrap";
 import {langList} from './global/i18n.ts';
 
 import "./App.css"
@@ -82,6 +82,7 @@ function App() {
   const setActiveCells = (c1, r1, c2, r2) => {
     if (c1 > c2) [c1, c2] = [c2, c1];
     if (r1 > r2) [r1, r2] = [r2, r1];
+    if (r1 === 0 || c1 === 0)return;
     if (r1 === -1) {
       r1 = 1;
       r2 = schema.totalRow;
@@ -197,6 +198,10 @@ function App() {
       })
     }
   };
+  const [zoom, setZoom] = useState(1);
+  useEffect(() => {
+    document.documentElement.style.setProperty("--excelZoom", String(zoom));
+  }, [zoom]);
 
   return (
     <>
@@ -210,6 +215,15 @@ function App() {
               <b>{activeRangeText}</b>
             </Stack>
             <Stack direction="horizontal" gap={2}>
+              {zoom !== 1 && <b>{(zoom * 100).toFixed(0)}</b>}
+              <ButtonGroup size="sm">
+                <Button variant="info" size="sm" onClick={() =>
+                  setZoom((z) => Math.min(z + 0.1, 4))
+                }><i className="bi bi-zoom-in"/></Button>
+                <Button variant="info" size="sm" onClick={() =>
+                  setZoom((z) => Math.max(z - 0.1, 0.2))
+                }><i className="bi bi-zoom-out"/></Button>
+              </ButtonGroup>
               <MemoryUsage/>
               <Button variant="info" size="sm" onClick={
                 e => openContextMenu(e,

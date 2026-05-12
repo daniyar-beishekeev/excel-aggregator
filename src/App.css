@@ -5,6 +5,10 @@ html, body, #root {
     box-sizing: border-box;
 }
 
+:root {
+    --excelZoom: 1;
+}
+
 .diffBetween {
     display: inline-flex;
     flex-direction: column;

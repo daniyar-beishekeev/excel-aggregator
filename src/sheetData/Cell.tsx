@@ -45,11 +45,11 @@ function cellEvaluator(cell: CellData, tableParams: React.RefObject<TableParams>
   const {w, h} = cell;
   if (h && w) {
     if (!cell.params.stretchCell) {
-      customContentStyle.maxWidth = w;
+      customContentStyle.maxWidth = `calc(${w}px * var(--excelZoom))`;
     }
     if (!cell.params.compactCell) {
-      customContainerStyle.minWidth = w;
-      customContainerStyle.height = h;
+      customContainerStyle.minWidth = `calc(${w}px * var(--excelZoom))`;
+      customContainerStyle.height = `calc(${h}px * var(--excelZoom))`;
     }
   }
   return (

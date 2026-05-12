@@ -1,4 +1,4 @@
-import {type ReactNode, useRef} from "react";
+import {type ReactNode, useRef, useState} from "react";
 import type React from "react";
 
 export function SelectableTool({children, handler}: {children: ReactNode, handler: Record<string, any>}) {
@@ -128,7 +128,12 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
 
   return (
     <div
-      style={{position: 'relative'}}
+      style={{
+        position: 'relative',
+        overflow: "auto",
+        width: "100%",
+        height: "100%"
+      }}
       ref={boxRef}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
@@ -147,6 +152,12 @@ export function SelectableTool({children, handler}: {children: ReactNode, handle
         }}
       />
       {children}
+      <div
+        style={{
+          width: "calc(100% + 100vw)",
+          height: "calc(100% + 100vh)",
+          pointerEvents: "none",
+        }}/>
     </div>
   )
 }
