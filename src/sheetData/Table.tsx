@@ -134,7 +134,7 @@ export function Table() {
 
   const tableElement = useMemo<JSX.Element>(() => (
     <>
-      <style type="text/css">{tableCSS.css}</style>
+      <style type="text/css" key={tableCSS.selector}>{tableCSS.css}</style>
       <table className={"excel " + tableCSS.selector}>
         <tbody>
         {schema.grid.map((row, rowIdx) => (

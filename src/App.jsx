@@ -54,18 +54,20 @@ function App() {
     }
     const sheet = sheets[0];
     const id = sheet.groupId + '!' + sheet.name;
-    let grid = schema.grid;
+    let {grid, totalCol, totalRow} = schema;
 
     if (id !== schema.id) {
       const file = files.find(file => file.id === sheet.groupId);
       if (file) {
         const wbHolder = await createWorkbookHolder(file);
         grid = wbHolder.getGridTemplate(sheet.name);
-        const {totalRow, totalCol} = wbHolder.worksheetSize(sheet.name);
+        const wsSize = wbHolder.worksheetSize(sheet.name);
+        totalRow = wsSize.totalRow;
+        totalCol = wsSize.totalCol;
         changeSchema(grid, id, totalCol, totalRow);
       }
     }
-    const wss = await Promise.all(sheets.map(sheet => parseWorksheet(files.find(file => file.id === sheet.groupId), sheet.name)));
+    const wss = await Promise.all(sheets.map(sheet => parseWorksheet(files.find(file => file.id === sheet.groupId), sheet.name, {totalCol, totalRow})));
     for (const row of grid)
       for (const cell of row) {
         changeCell(cell.address, {
@@ -140,9 +142,14 @@ function App() {
       debounce((filters) => {
         const tmp = filters.filter(f => f.enabled)
         if (tmp.every(f => f.valid))
-          setFilterMap(applyFilters(tmp, selectedSheets.length));
+          setFilterMiddleware([tmp, selectedSheets.length]);
       }, 300)
-  ,[applyFilters, selectedSheets]);
+  ,[selectedSheets]);
+  const [filterMiddleware, setFilterMiddleware] = useState(null);
+  useEffect(() => {
+    if (filterMiddleware)
+      setFilterMap(applyFilters(...filterMiddleware));
+  }, [applyFilters, filterMiddleware])
 
 
   useEffect(() => {
@@ -172,8 +179,8 @@ function App() {
     }
     if (val.t === 'z') {
       openContextMenu(e, [
-        {id: 'filter_empty', label: t('filter') + ': ' + t('Empty')},
-        {id: 'filter_exclude_empty', label: t('exclude') + ': ' + t('Empty')},
+        {id: 'filter_empty', label: t('filter') + ': (' + t('empties') + ')'},
+        {id: 'filter_exclude_empty', label: t('exclude') + ': (' + t('empties') + ')'},
       ], item => {
         if (item.id === 'filter_empty' || item.id === 'filter_exclude_empty') {
           addFilter({enabled: true, valid: true, address, operator: item.id === 'filter_empty' ? 'Empty' : 'NEmpty'});
