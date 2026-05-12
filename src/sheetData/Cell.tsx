@@ -1,6 +1,8 @@
+import {useCellVisibility} from "./TableVisibilityContext.tsx";
+
 const SAFE_LIMITER = 5;
 
-import React, {type CSSProperties, type JSX, useEffect, useState} from "react";
+import React, {type CSSProperties, type JSX, useEffect, useRef, useState} from "react";
 import {format} from "ssf";
 import type {CellData, TableData, TableParams} from "./Table.tsx";
 
@@ -12,6 +14,8 @@ import type {FormTypeFull} from "./plugins/CellParams.tsx";
 
 export function Cell({address, tableData, version, tableParams}: {address: string, tableData: React.RefObject<TableData>, tableParams: React.RefObject<TableParams>, version: number}): JSX.Element | undefined {
   //console.log('Rendering', address);
+  const [ref, visible] = useCellVisibility();
+  const cachedRender = useRef<JSX.Element | undefined>(undefined);
   const [, setTick] = useState(0);
   useEffect(() => {
     const cell = tableData.current[address];
@@ -25,10 +29,14 @@ export function Cell({address, tableData, version, tableParams}: {address: strin
   }, [tableData, address, version]);
   const cell = tableData.current[address];
   if (!cell) return;
-  return cellEvaluator(cell, tableParams);
+  if (visible || !cachedRender.current) {
+    cachedRender.current = cellEvaluator(cell, tableParams, ref);
+    return cachedRender.current;
+  }
+  return cachedRender.current;
 }
 
-function cellEvaluator(cell: CellData, tableParams: React.RefObject<TableParams>): JSX.Element | undefined {
+function cellEvaluator(cell: CellData, tableParams: React.RefObject<TableParams>, ref?: React.RefObject<HTMLTableCellElement | null>): JSX.Element | undefined {
   let classes = (cell.classList ?? '') + ' ' + cell.cssSelector;
   if (cell.active)
     classes += ' ' + cell.active;
@@ -46,6 +54,7 @@ function cellEvaluator(cell: CellData, tableParams: React.RefObject<TableParams>
   }
   return (
     <td
+      ref={ref}
       data-c={cell.c}
       data-r={cell.r}
       className={classes}

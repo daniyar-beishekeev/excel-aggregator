@@ -4,6 +4,7 @@ import type {cellValue} from "./parseWorksheet.ts";
 import type {FilterInstance, FormType} from "./plugins/CellParams.tsx";
 import {Cell} from "./Cell.tsx";
 import {cssPropertiesToString} from "../utils/cssConverter.ts"
+import {TableVisibilityProvider} from "./TableVisibilityContext.tsx";
 
 type CellDataExtra = {
   values: null | cellValue[];
@@ -135,23 +136,25 @@ export function Table() {
   const tableElement = useMemo<JSX.Element>(() => (
     <>
       <style type="text/css" key={tableCSS.selector}>{tableCSS.css}</style>
-      <table className={"excel " + tableCSS.selector}>
-        <tbody>
-        {schema.grid.map((row, rowIdx) => (
-          <tr key={rowIdx}>
-            {row.map(cell => (
-              <Cell
-                key={cell.address}
-                address={cell.address}
-                tableData={tableData}
-                tableParams={tableParams}
-                version={version}
-              />
-            ))}
-          </tr>
-        ))}
-        </tbody>
-      </table>
+      <TableVisibilityProvider>
+        <table className={"excel " + tableCSS.selector}>
+          <tbody>
+          {schema.grid.map((row, rowIdx) => (
+            <tr key={rowIdx}>
+              {row.map(cell => (
+                <Cell
+                  key={cell.address}
+                  address={cell.address}
+                  tableData={tableData}
+                  tableParams={tableParams}
+                  version={version}
+                />
+              ))}
+            </tr>
+          ))}
+          </tbody>
+        </table>
+      </TableVisibilityProvider>
     </>
   ), [schema, version, tableCSS]);
 
