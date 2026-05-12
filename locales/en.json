@@ -8,6 +8,8 @@
   "fileFilter": "File Filter",
   "filter": "Filter",
   "exclude": "Exclude",
+  "fileList": "Files list",
+  "sheetMap": "Sheets map",
   "aggregation": "Aggregation",
   "mode": "Mode",
   "value": "Value",

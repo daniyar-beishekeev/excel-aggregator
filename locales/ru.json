@@ -8,6 +8,8 @@
   "fileFilter": "Фильтр файлов",
   "filter": "Фильтр",
   "exclude": "Исключить",
+  "fileList": "Список файлов",
+  "sheetMap": "Карта листов",
   "aggregation": "Агрегация",
   "mode": "Режим",
   "value": "Значение",
