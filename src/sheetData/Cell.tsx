@@ -181,7 +181,9 @@ function cellEvaluator2(cell: CellData, customContentStyle: Readonly<CSSProperti
                   const diff = b - a;
                   let diff2: number | string = diff;
                   if (numberAggregator === 'diffVarPercent')
-                    diff2 = a === 0 ? '∞' : round((diff / a) * 100);
+                    diff2 = a === 0 ? '∞' : round((diff / a) * 100).toFixed(2);
+                  else
+                    diff2 = diff2.toFixed(3)
                   return (
                     <div className={'diffBetween mx-1'}>
                       <span style={{backgroundColor:

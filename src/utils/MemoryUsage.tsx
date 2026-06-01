@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+//@ts-expect-error
+const compileTime = __BUILD_TIME__;
 
 export function MemoryUsage() {
   const [text, setText] = useState<string>("");
@@ -23,5 +25,5 @@ export function MemoryUsage() {
     return () => clearInterval(interval);
   }, []);
 
-  return <div>{text}</div>;
+  return <div title={compileTime}>{text}</div>;
 }

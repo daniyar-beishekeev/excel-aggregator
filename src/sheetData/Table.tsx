@@ -136,7 +136,7 @@ export function Table() {
   const tableElement = useMemo<JSX.Element>(() => (
     <>
       <style type="text/css" key={tableCSS.selector}>{tableCSS.css}</style>
-      <TableVisibilityProvider>
+      <TableVisibilityProvider key={schema.id}>
         <table className={"excel " + tableCSS.selector}>
           <tbody>
           {schema.grid.map((row, rowIdx) => (

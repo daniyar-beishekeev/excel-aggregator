@@ -215,7 +215,7 @@ function App() {
               <b>{activeRangeText}</b>
             </Stack>
             <Stack direction="horizontal" gap={2}>
-              {zoom !== 1 && <b>{(zoom * 100).toFixed(0)}</b>}
+              {zoom !== 1 && <b>{(zoom * 100).toFixed(0)}%</b>}
               <ButtonGroup size="sm">
                 <Button variant="info" size="sm" onClick={() =>
                   setZoom((z) => Math.min(z + 0.1, 4))

@@ -26,7 +26,7 @@ export const renderItem = (item: EntityType['children'][number], idx: number): R
     <div style={{backgroundColor: backgroundColor(idx)}} key={idx}>
       <code className={"font-mono text-blue-700 text-nowrap"}>{item.group}</code>
       <br/>
-      <b>└ {item.name}</b>
+      <b className={"text-nowrap"}>└ {item.name}</b>
     </div>
   );
 }
