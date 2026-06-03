@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useState} from "react";
 import {Accordion, Alert, Button, Form, ListGroup, Stack} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 
-const operators: string[] = ['eq', 'neq', 'le', 'leq', 'gr', 'grq', 'Empty', 'NEmpty', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain'];
+const operators: string[] = ['eq', 'neq', 'le', 'leq', 'gr', 'grq', 'Empty', 'NEmpty', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain', 'ContainF', 'NContainF', 'FContain', 'FNContain'];
 type Operators = typeof operators[number];
 export interface FilterInstance {
   enabled: boolean;
@@ -16,7 +16,7 @@ function isValidFilter(filter: Record<string, any>): boolean {
   const { address, operator, operatorArg, operatorItems } = filter;
   if (!address || address === '') return false;
   if (!operator || operator === '') return false;
-  if (['le', 'leq', 'gr', 'grq', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain'].includes(operator) && (!operatorArg || operatorArg === '')) return false;
+  if (['le', 'leq', 'gr', 'grq', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain', 'FContain', 'FNContain'].includes(operator) && (!operatorArg || operatorArg === '')) return false;
   if (['le', 'leq', 'gr', 'grq'].includes(operator) && isNaN(operatorArg)) return false;
   return true;
 }
@@ -61,7 +61,7 @@ function Filter({filter, setFilter, onDelete, activeRangeText}:
           </Form.Select>
         </Stack>
         <Stack direction="horizontal" gap={1}>
-          {filter.operator && ['eq', 'neq', 'le', 'leq', 'gr', 'grq', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain'].includes(filter.operator)
+          {filter.operator && ['eq', 'neq', 'le', 'leq', 'gr', 'grq', 'SWith', 'NSWith', 'EWith', 'NEWith', 'Contain', 'NContain', 'FContain', 'FNContain'].includes(filter.operator)
             && <Form.Control value={filter.operatorArg ?? ''} onChange={e => setFilterPre({ ...filter, operatorArg: e.target.value })} size="sm" type="text" />
           }
           <Button

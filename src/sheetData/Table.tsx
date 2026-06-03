@@ -119,6 +119,10 @@ export function Table() {
           if (op === 'NEWith') return (v) => !String(v.v).endsWith(arg2Str);
           if (op === 'Contain')  return (v) =>  String(v.v).includes(arg2Str);
           if (op === 'NContain')  return (v) => !String(v.v).includes(arg2Str);
+          if (op === 'ContainF') return (v) => !!v.f;
+          if (op === 'NContainF') return (v) => !v.f;
+          if (op === 'FContain') return (v) => String(v.f || '').includes(arg2Str);
+          if (op === 'FNContain') return (v) => !String(v.f || '').includes(arg2Str);
           return () => true;
         }
         const evaluator = ev(operator, operatorArg);
