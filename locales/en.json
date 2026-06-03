@@ -87,6 +87,10 @@
     "EWith": "Ends With",
     "NEWith": "Does Not End With",
     "Contain": "Contains",
-    "NContain": "Does Not Contain"
+    "NContain": "Does Not Contain",
+    "ContainF": "Contain Formula",
+    "NContainF": "Does Not Contain Formula",
+    "FContain": "Formula Contain",
+    "FNContain": "Formula does not contain"
   }
 }
